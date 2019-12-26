@@ -20,7 +20,7 @@ namespace ListViewer
     {
         public static IServiceProvider ServiceProvider { get; private set; } = default!;
 
-        protected override async void OnStartup(StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
             if (e.Args.Length > 1)
             {

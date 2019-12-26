@@ -2,6 +2,49 @@
 
 A configureable list viewer.
 
+## Simplest Example
+
+If you have a ton .efu files (created by everything)
+
+![img-1](./res/img-1.jpg)
+
+You can add a json configuration
+
+``` json
+{
+    "Title": "List-Viewer",
+    "Columns": [
+        {
+            "ColumnName": "EFU File",
+            "ColumnField": "FileName",
+            "IsContextField": true
+        },
+        {
+            "ColumnName": "Name",
+            "ColumnField": "Filename"
+        }
+    ],
+    "Sources": [
+        {
+            "Provider": "dir",
+            "DirPath": "C:\\YourDir",
+            "SubDirDepth": 999,
+            "Templates": {
+                ".efu": {
+                    "Provider": "csv"
+                }
+            }
+        }
+    ]
+}
+```
+
+Drop it on `ListViewer.exe`, then ...
+
+![img-2](./res/img-2.jpg)
+
+Here is a searchable list viewer.
+
 ## Configure
 
 By default, when you launch `ListViewer.exe` without arguments,
