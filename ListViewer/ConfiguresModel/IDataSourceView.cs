@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using ListViewer.Model;
 
 namespace ListViewer.ConfiguresModel
 {
@@ -7,5 +8,7 @@ namespace ListViewer.ConfiguresModel
         string? Provider { get; }
 
         public Dictionary<string, string?>? FieldMap { get; }
+
+        FieldsMapper CreateFieldsMapper() => new FieldsMapper(this.FieldMap);
     }
 }

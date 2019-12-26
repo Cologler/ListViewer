@@ -2,7 +2,7 @@
 
 namespace ListViewer.ConfiguresModel
 {
-    interface IDataSourceDirectoryView : IDataSourceView
+    interface IDirectoryDataSourceView : IDataSourceView
     {
         string? DirPath { get; }
 

@@ -4,5 +4,6 @@
     {
         public const string Sqlite3 = "sqlite3";
         public const string Csv = "csv";
+        public const string Directory = "dir";
     }
 }

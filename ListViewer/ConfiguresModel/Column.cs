@@ -7,5 +7,7 @@
         public string? ColumnField { get; set; }
 
         public bool? SearchOn { get; set; }
+
+        public bool? IsDisplay { get; set; }
     }
 }

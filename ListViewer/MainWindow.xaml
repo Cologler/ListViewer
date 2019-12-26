@@ -9,6 +9,34 @@
         Height="450" 
         Width="800">
     <Grid>
+        <Grid Margin="4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
 
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                     Height="22"/>
+
+            <ListView ItemsSource="{Binding Items}"
+                      Grid.Row="1"
+                      Margin="0,4,0,0">
+                <ListView.View>
+                    <GridView x:Name="GridView1">
+                        <GridViewColumn DisplayMemberBinding="{Binding Path=A}"
+                                        Header="A"
+                                        Width="200" />
+
+                        <GridViewColumn DisplayMemberBinding="{Binding Path=B}"
+                                        Header="B"
+                                        Width="200" />
+
+                        <GridViewColumn DisplayMemberBinding="{Binding Path=C}"
+                                        Header="C"
+                                        Width="200" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
     </Grid>
 </Window>

@@ -30,7 +30,10 @@ Config file format:
     "ColumnField": "",
 
     // is search on this column or not, default value is true
-    "SearchOn": true
+    "SearchOn": true,
+
+    // is display on main window or not, default value is true
+    "IsDisplay": true
 }
 ```
 
@@ -71,6 +74,7 @@ Config file format:
 
 ``` json
 {
+    "Provider": "dir",
     // the directory path
     "DirPath": "",
     "SubDirDepth": 0,

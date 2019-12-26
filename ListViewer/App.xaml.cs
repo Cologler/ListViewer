@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using ListViewer.Abstractions;
 using ListViewer.ConfiguresModel;
+using ListViewer.Model;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer
@@ -20,7 +20,7 @@ namespace ListViewer
     {
         public static IServiceProvider ServiceProvider { get; private set; } = default!;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             if (e.Args.Length > 1)
             {
@@ -43,6 +43,12 @@ namespace ListViewer
 
             ServiceProvider = new ServiceCollection()
                 .AddSingleton(config)
+                .AddSingleton<IEncodingResolver, EncodingResolver>()
+                .AddSingleton<IDataQuerySourceFactory, DataQuerySourceFactory>()
+                .AddSingleton<DataQueryProvider>()
+                .AddTransient<DirectoryDataQuerySource>()
+                .AddTransient<CsvDataQuerySource>()
+                .AddTransient<Sqlite3DataQuerySource>()
                 .BuildServiceProvider();
             
             base.OnStartup(e);

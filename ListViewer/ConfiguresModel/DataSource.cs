@@ -3,9 +3,9 @@
 namespace ListViewer.ConfiguresModel
 {
     class DataSource : DataFileTemplate,
-        IDataSourceSqlite3View,
-        IDataSourceDataFileView,
-        IDataSourceDirectoryView
+        ISqlite3DataSourceView,
+        IDataFileDataSourceView,
+        IDirectoryDataSourceView
     {
         public string? ConnectionString { get; set; }
 
