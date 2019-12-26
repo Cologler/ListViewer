@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ListViewer.ConfiguresModel;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer
 {
@@ -23,6 +25,11 @@ namespace ListViewer
         public MainWindow()
         {
             InitializeComponent();
+
+            if (App.ServiceProvider.GetRequiredService<ConfigurationFile>().Title is string title)
+            {
+                this.Title = title;
+            }
         }
     }
 }
