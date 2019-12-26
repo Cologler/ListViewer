@@ -33,7 +33,11 @@ Config file format:
     "SearchOn": true,
 
     // is display on main window or not, default value is true
-    "IsDisplay": true
+    "IsDisplay": true,
+
+    // is the column field from context,
+    // for example, "FileName" can read from context.
+    "IsContextField": false
 }
 ```
 

@@ -6,8 +6,10 @@
 
         public string? ColumnField { get; set; }
 
-        public bool? SearchOn { get; set; }
+        public bool SearchOn { get; set; } = true;
 
-        public bool? IsDisplay { get; set; }
+        public bool IsDisplay { get; set; } = true;
+
+        public bool IsContextField { get; set; }
     }
 }

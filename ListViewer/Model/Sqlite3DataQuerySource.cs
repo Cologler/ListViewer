@@ -14,6 +14,7 @@ namespace ListViewer.Model
         private SQLiteConnection _sqliteConnection = default!;
         private string _table = default!;
         private FieldsMapper _fieldsMapper = default!;
+        private readonly Dictionary<string, string> _contextEnvironments = new Dictionary<string, string>();
 
         public void Dispose() => this._sqliteConnection?.Dispose();
 
@@ -32,27 +33,51 @@ namespace ListViewer.Model
 
             try
             {
-                var searchOnColumns = queryContext.SearchOnColumns.Select(z => this._fieldsMapper.Get(z)).ToArray();
-                var selectColumns = queryContext.SelectColumns.Select(z => this._fieldsMapper.Get(z)).ToArray();
-                var selectFromDbColumns = new HashSet<string>(searchOnColumns);
-                selectFromDbColumns.UnionWith(selectColumns);
-
                 using var command = this._sqliteConnection.CreateCommand();
+                var sql = $"select * from {this._table!}";
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
-                command.CommandText = $"select {string.Join(",", selectFromDbColumns)} from {this._table!}";
+                command.CommandText = sql;
 #pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 
                 using (var reader = command.ExecuteReader())
                 {
-                    var searchOnColumnsIndexes = searchOnColumns.Select(z => (Name: z, Index: reader.GetOrdinal(z))).ToArray();
-                    var selectColumnsIndexes = selectColumns.Select(z => (Name: z, Index: reader.GetOrdinal(z))).ToArray();
+                    var searchOnReaders = queryContext.SearchOnColumns
+                        .Select(z =>
+                        {
+                            return z.IsContextField
+                                ? ColumnValueReader<SQLiteDataReader>.FromContextEnvironmentsConstants(this._contextEnvironments, z.Key)
+                                : new SQLiteColumnValueReader(reader.GetOrdinal(this._fieldsMapper.Get(z.Key)));
+                        })
+                        .ToArray();
+
+                    var selectReaders = queryContext.SelectColumns
+                        .Select(z =>
+                        {
+                            return z.IsContextField
+                                ? ColumnValueReader<SQLiteDataReader>.FromContextEnvironmentsConstants(this._contextEnvironments, z.Key)
+                                : new SQLiteColumnValueReader(reader.GetOrdinal(this._fieldsMapper.Get(z.Key)));
+                        })
+                        .ToArray();
 
                     bool IsMatchRow()
                     {
-                        return queryContext.SearchText.Length == 0 ||
-                            searchOnColumnsIndexes
-                                .Where(z => reader.GetString(z.Index).Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
+                        if (queryContext.SearchText.Length == 0)
+                            return true;
+
+                        if (queryContext.SearchOnAll)
+                        {
+                            return Enumerable.Range(0, reader.FieldCount)
+                                .Where(i => reader.GetString(i).Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
                                 .Any();
+                        }
+                        else
+                        {
+                            return searchOnReaders
+                                .Where(z => 
+                                    z.TryReadValue(reader) is string v &&
+                                    v.Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
+                                .Any();
+                        }
                     }
 
                     while (reader.Read())
@@ -61,10 +86,7 @@ namespace ListViewer.Model
 
                         if (IsMatchRow())
                         {
-                            yield return new QueryRecordRow(
-                                selectColumnsIndexes
-                                    .Select(z => reader.GetString(z.Index))
-                                    .ToArray());
+                            yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
                         }
                     }
                 }
@@ -72,6 +94,21 @@ namespace ListViewer.Model
             finally
             {
                 this._sqliteConnection.Close();
+            }
+        }
+
+        class SQLiteColumnValueReader : ColumnValueReader<SQLiteDataReader>
+        {
+            private readonly int _columnIndex;
+
+            public SQLiteColumnValueReader(int columnIndex)
+            {
+                this._columnIndex = columnIndex;
+            }
+
+            public override string? TryReadValue(SQLiteDataReader reader)
+            {
+                return reader.GetString(this._columnIndex);
             }
         }
     }

@@ -18,7 +18,7 @@ namespace ListViewer.ConfiguresModel
         {
             return this.Columns?
                 .WhereNotNull()
-                .Where(z => z.SearchOn ?? true)
+                .Where(z => z.SearchOn)
                 .ToArray() ?? Array.Empty<Column>();
         }
 
@@ -26,7 +26,7 @@ namespace ListViewer.ConfiguresModel
         {
             return this.Columns?
                 .WhereNotNull()
-                .Where(z => z.IsDisplay ?? true)
+                .Where(z => z.IsDisplay)
                 .ToArray() ?? Array.Empty<Column>();
         }
     }
