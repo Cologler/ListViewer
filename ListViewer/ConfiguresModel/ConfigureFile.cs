@@ -5,7 +5,7 @@ using System.Windows.Documents;
 
 namespace ListViewer.ConfiguresModel
 {
-    class ConfigureFile
+    class ConfigurationFile
     {
         public string? Title { get; set; }
 

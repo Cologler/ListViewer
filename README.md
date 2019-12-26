@@ -5,7 +5,7 @@ A configureable list viewer.
 ## Configure
 
 By default, when you launch `ListViewer.exe` without arguments,
-ListViewer will load `config.json` from application directory.
+ListViewer will load `lv-config.json` from application directory.
 
 You can drop a json config file on `ListViewer.exe` to use specials config file.
 
