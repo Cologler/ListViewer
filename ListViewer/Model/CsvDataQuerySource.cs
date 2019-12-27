@@ -70,16 +70,13 @@ namespace ListViewer.Model
 
                     if (queryContext.SearchOnAll)
                     {
-                        return Enumerable.Range(0, reader.Context.ColumnCount)
-                            .Where(i => reader.GetField(i).Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
-                            .Any();
+                        return this.IsDatasMatch(queryContext.SearchText,
+                            Enumerable.Range(0, reader.Context.ColumnCount).Select(z => reader.GetField(z)));
                     }
                     else
                     {
-                        return searchOnReaders
-                            .Where(z => z.TryReadValue(reader) is string v &&
-                                v.Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
-                            .Any();
+                        return this.IsDatasMatch(queryContext.SearchText,
+                            searchOnReaders.Select(z => z.TryReadValue(reader)).OfType<string>());
                     }
                 }
 

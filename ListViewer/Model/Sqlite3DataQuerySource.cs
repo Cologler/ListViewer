@@ -91,17 +91,14 @@ namespace ListViewer.Model
 
                         if (queryContext.SearchOnAll)
                         {
-                            return Enumerable.Range(0, reader.FieldCount)
-                                .Where(i => reader.GetString(i).Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
-                                .Any();
+                            return this.IsDatasMatch(queryContext.SearchText,
+                                Enumerable.Range(0, reader.FieldCount)
+                                    .Select(z => reader.GetValue(z)?.ToString()).OfType<string>());
                         }
                         else
                         {
-                            return searchOnReaders
-                                .Where(z =>
-                                    z.TryReadValue(reader) is string v &&
-                                    v.Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
-                                .Any();
+                            return this.IsDatasMatch(queryContext.SearchText,
+                                searchOnReaders.Select(z => z.TryReadValue(reader)).OfType<string>());
                         }
                     }
 
@@ -132,7 +129,7 @@ namespace ListViewer.Model
                 if (this._columnIndex < 0)
                     return null;
 
-                return reader.GetValue(this._columnIndex).ToString();
+                return reader.GetValue(this._columnIndex)?.ToString();
             }
         }
     }

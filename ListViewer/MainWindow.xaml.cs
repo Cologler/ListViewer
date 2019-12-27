@@ -34,7 +34,7 @@ namespace ListViewer
             var config = App.ServiceProvider.GetRequiredService<ConfigurationFile>();
             if (config.Columns != null)
             {
-                var gvcs = config.GetSelectColumns()
+                var gvcs = config.GetDisplayColumns()
                     .Select(z => z.ColumnName ?? z.ColumnField ?? throw new BadConfigurationException("ColumnField and ColumnName both are null."))
                     .Select((z, i) => 
                     {

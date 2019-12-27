@@ -22,7 +22,7 @@ namespace ListViewer.ConfiguresModel
                 .ToArray() ?? Array.Empty<Column>();
         }
 
-        public IReadOnlyCollection<Column> GetSelectColumns()
+        public IReadOnlyCollection<Column> GetDisplayColumns()
         {
             return this.Columns?
                 .WhereNotNull()

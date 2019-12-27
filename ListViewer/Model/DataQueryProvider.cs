@@ -64,7 +64,7 @@ namespace ListViewer.Model
                 ))
                 .ToArray();
             var select = config
-                 .GetSelectColumns()
+                 .GetDisplayColumns()
                  .Select(z => new ColumnReaderInfo(
                      z.ColumnField ?? z.ColumnName ?? throw new BadConfigurationException("ColumnField and ColumnName both are null."),
                      z.IsContextField
