@@ -53,12 +53,12 @@ namespace ListViewer
 
             try
             {
-                await App.ServiceProvider.GetRequiredService<DataQueryProvider>()
+                await ServiceProvider.GetRequiredService<DataQueryProvider>()
                     .LoadAsync();
             }
             catch (BadConfigurationException exc)
             {
-                MessageBox.Show(exc.ToString());
+                MessageBox.Show(exc.Message, "Bad configuration file");
                 this.Shutdown(3);
                 return;
             }
