@@ -37,6 +37,7 @@ namespace ListViewer.Model
                 if (!tables.Contains(this._table))
                 {
                     var message = $"No such table ({this._table}) in database ({this._connectionString}).";
+                    message += "\n\nAll available tables:\n" + string.Join("\n", tables.Select(z => "    - " + z));
                     throw new BadConfigurationException(message);
                 }
             }
