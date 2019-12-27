@@ -22,6 +22,8 @@ namespace ListViewer
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            DispatcherUnhandledException += this.App_DispatcherUnhandledException;
+
             if (e.Args.Length > 1)
             {
                 MessageBox.Show($"Too many arguments, expect 0 or 1, got {e.Args.Length}.");
@@ -31,27 +33,9 @@ namespace ListViewer
 
             var configFileName = e.Args.Length == 1 ? e.Args[0]! : Constants.DefaultConfigFileName;
 
-            if (!File.Exists(configFileName))
-            {
-                MessageBox.Show($"Config file {configFileName} does not exists.");
-                this.Shutdown(2);
-                return;
-            }
-
-            DispatcherUnhandledException += this.App_DispatcherUnhandledException;
-
-            var text = File.ReadAllText(configFileName);
-            var config = JsonSerializer.Deserialize<ConfigurationFile>(text);
-
-            ServiceProvider = new ServiceCollection()
-                .AddSingleton(config)
-                .AddSingleton<IEncodingResolver, EncodingResolver>()
-                .AddSingleton<IDataQuerySourceFactory, DataQuerySourceFactory>()
-                .AddSingleton<DataQueryProvider>()
-                .AddTransient<DirectoryDataQuerySource>()
-                .AddTransient<CsvDataQuerySource>()
-                .AddTransient<Sqlite3DataQuerySource>()
-                .BuildServiceProvider();
+            var text = this.ReadTextOrExit(configFileName);
+            var config = this.ParseConfigurationFile(text);
+            ServiceProvider = CreateFrom(config);
 
             try
             {
@@ -85,6 +69,56 @@ namespace ListViewer
         {
             MessageBox.Show(e.Message, "Bad configuration file");
             this.Shutdown(3);
+        }
+
+        private string ReadTextOrExit(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    return File.ReadAllText(fileName);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show($"Unable to read file ({fileName}): \n" + e.ToString());
+                }    
+            }
+            else
+            {
+                MessageBox.Show($"File ({fileName}) does not exists.");
+            }
+
+            this.Shutdown(2);
+            throw new NotImplementedException();
+        }
+
+        private ConfigurationFile ParseConfigurationFile(string content)
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<ConfigurationFile>(content);
+            }
+            catch (JsonException e)
+            {
+                MessageBox.Show($"Error on parse config file:\n" + e.ToString());
+            }
+
+            this.Shutdown(3);
+            throw new NotImplementedException();
+        }
+
+        internal static IServiceProvider CreateFrom(ConfigurationFile config)
+        {
+            return new ServiceCollection()
+                .AddSingleton(config)
+                .AddSingleton<IEncodingResolver, EncodingResolver>()
+                .AddSingleton<IDataQuerySourceFactory, DataQuerySourceFactory>()
+                .AddSingleton<DataQueryProvider>()
+                .AddTransient<DirectoryDataQuerySource>()
+                .AddTransient<CsvDataQuerySource>()
+                .AddTransient<Sqlite3DataQuerySource>()
+                .BuildServiceProvider();
         }
     }
 }
