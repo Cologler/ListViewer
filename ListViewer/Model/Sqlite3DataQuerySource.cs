@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Threading;
@@ -11,29 +12,49 @@ using ListViewer.Model.Bases;
 namespace ListViewer.Model
 {
     class Sqlite3DataQuerySource : BaseDataQuerySource, 
-        IDataQuerySource, IDisposable
+        IDataQuerySource
     {
-        private SQLiteConnection _sqliteConnection = default!;
+        private string _connectionString = default!;
         private string _table = default!;
-
-        public void Dispose() => this._sqliteConnection?.Dispose();
 
         public Task LoadAsync(DataSource dataSource)
         {
             var dataSourceView = (ISqlite3DataSourceView)dataSource;
-            this._sqliteConnection = new SQLiteConnection(dataSourceView.GetConnectionString());
+            this._connectionString = dataSourceView.GetConnectionString();
             this._table = dataSourceView.GetTable();
             this.FieldsMapper = dataSourceView.CreateFieldsMapper();
+
+            using (var connection = this.OpenConnection())
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY 1";
+
+                using var reader = command.ExecuteReader();
+                var tables = reader.OfType<IDataRecord>()
+                    .Select(z => z.GetString(0))
+                    .ToHashSet();
+
+                if (!tables.Contains(this._table))
+                {
+                    throw new BadConfigurationException($"No such table ({this._table}) in database ({this._connectionString}).");
+                }
+            }
+
             return Task.CompletedTask;
+        }
+
+        private SQLiteConnection OpenConnection()
+        {
+            var connection = new SQLiteConnection(this._connectionString);
+            connection.Open();
+            return connection;
         }
 
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken)
         {
-            this._sqliteConnection.Open();
-
-            try
+            using (var connection = this.OpenConnection())
             {
-                using var command = this._sqliteConnection.CreateCommand();
+                using var command = connection.CreateCommand();
                 var sql = $"select * from {this._table!}";
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                 command.CommandText = sql;
@@ -73,7 +94,7 @@ namespace ListViewer.Model
                         else
                         {
                             return searchOnReaders
-                                .Where(z => 
+                                .Where(z =>
                                     z.TryReadValue(reader) is string v &&
                                     v.Contains(queryContext.SearchText, StringComparison.OrdinalIgnoreCase))
                                 .Any();
@@ -90,10 +111,6 @@ namespace ListViewer.Model
                         }
                     }
                 }
-            }
-            finally
-            {
-                this._sqliteConnection.Close();
             }
         }
 

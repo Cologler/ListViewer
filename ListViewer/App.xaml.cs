@@ -38,6 +38,8 @@ namespace ListViewer
                 return;
             }
 
+            DispatcherUnhandledException += this.App_DispatcherUnhandledException;
+
             var text = File.ReadAllText(configFileName);
             var config = JsonSerializer.Deserialize<ConfigurationFile>(text);
 
@@ -58,12 +60,31 @@ namespace ListViewer
             }
             catch (BadConfigurationException exc)
             {
-                MessageBox.Show(exc.Message, "Bad configuration file");
-                this.Shutdown(3);
+                this.OnException(exc);
                 return;
             }
             
             base.OnStartup(e);
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            switch (e.Exception)
+            {
+                case BadConfigurationException exc:
+                    this.OnException(exc);
+                    e.Handled = true;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void OnException(BadConfigurationException e)
+        {
+            MessageBox.Show(e.Message, "Bad configuration file");
+            this.Shutdown(3);
         }
     }
 }
