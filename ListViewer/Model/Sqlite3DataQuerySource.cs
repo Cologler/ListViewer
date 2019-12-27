@@ -36,7 +36,8 @@ namespace ListViewer.Model
 
                 if (!tables.Contains(this._table))
                 {
-                    throw new BadConfigurationException($"No such table ({this._table}) in database ({this._connectionString}).");
+                    var message = $"No such table ({this._table}) in database ({this._connectionString}).";
+                    throw new BadConfigurationException(message);
                 }
             }
 
@@ -125,7 +126,10 @@ namespace ListViewer.Model
 
             public override string? TryReadValue(SQLiteDataReader reader)
             {
-                return reader.GetString(this._columnIndex);
+                if (this._columnIndex < 0)
+                    return null;
+
+                return reader.GetValue(this._columnIndex).ToString();
             }
         }
     }
