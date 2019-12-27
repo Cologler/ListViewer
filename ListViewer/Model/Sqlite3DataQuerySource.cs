@@ -17,6 +17,8 @@ namespace ListViewer.Model
         private string _connectionString = default!;
         private string _table = default!;
 
+        public string ProviderName => DataProviderNames.Sqlite3;
+
         public Task LoadAsync(DataSource dataSource)
         {
             var dataSourceView = (ISqlite3DataSourceView)dataSource;

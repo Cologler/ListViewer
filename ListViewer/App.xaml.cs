@@ -116,8 +116,11 @@ namespace ListViewer
                 .AddSingleton<IDataQuerySourceFactory, DataQuerySourceFactory>()
                 .AddSingleton<DataQueryProvider>()
                 .AddTransient<DirectoryDataQuerySource>()
+                .AddTransient<IDataQuerySource>(p => p.GetRequiredService<DirectoryDataQuerySource>())
                 .AddTransient<CsvDataQuerySource>()
+                .AddTransient<IDataQuerySource>(p => p.GetRequiredService<CsvDataQuerySource>())
                 .AddTransient<Sqlite3DataQuerySource>()
+                .AddTransient<IDataQuerySource>(p => p.GetRequiredService<Sqlite3DataQuerySource>())
                 .BuildServiceProvider();
         }
     }

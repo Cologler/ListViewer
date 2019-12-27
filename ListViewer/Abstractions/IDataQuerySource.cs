@@ -9,6 +9,8 @@ namespace ListViewer.Abstractions
 {
     interface IDataQuerySource
     {
+        string ProviderName { get; }
+
         Task LoadAsync(DataSource dataSource);
 
         IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken);

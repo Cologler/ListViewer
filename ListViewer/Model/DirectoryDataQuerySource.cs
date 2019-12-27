@@ -16,6 +16,8 @@ namespace ListViewer.Model
         {
         }
 
+        public string ProviderName => DataProviderNames.Directory;
+
         static IEnumerable<string> EnumerableFiles(string dirPath, int depth)
         {
             static void Walk(List<string> results, string dirPath, int depth)

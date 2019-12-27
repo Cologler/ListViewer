@@ -22,6 +22,8 @@ namespace ListViewer.Model
             this._serviceProvider = serviceProvider;
         }
 
+        public string ProviderName => DataProviderNames.Csv;
+
         public Task LoadAsync(DataSource dataSource)
         {
             var dataSourceView = (IDataFileDataSourceView) dataSource;
