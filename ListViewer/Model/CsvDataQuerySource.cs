@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 using CsvHelper;
 using ListViewer.Abstractions;
 using ListViewer.ConfiguresModel;
+using ListViewer.Model.Bases;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class CsvDataQuerySource : IDataQuerySource
+    class CsvDataQuerySource : BaseDataQuerySource, IDataQuerySource
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly Dictionary<string, string> _contextEnvironments = new Dictionary<string, string>();
         private string _csvData = default!;
-        private FieldsMapper _fieldsMapper = default!;
 
         public CsvDataQuerySource(IServiceProvider serviceProvider)
         {
@@ -30,9 +29,9 @@ namespace ListViewer.Model
             var encoding = this._serviceProvider.GetRequiredService<IEncodingResolver>()
                 .GetEncoding(dataSourceView.Encoding);
             this._csvData = File.ReadAllText(filePath, encoding);
-            this._fieldsMapper = dataSourceView.CreateFieldsMapper();
-            this._contextEnvironments["FilePath"] = filePath;
-            this._contextEnvironments["FileName"] = Path.GetFileName(filePath);
+            this.FieldsMapper = dataSourceView.CreateFieldsMapper();
+            this.ContextFields["FilePath"] = filePath;
+            this.ContextFields["FileName"] = Path.GetFileName(filePath);
             return Task.CompletedTask;
         }
 
@@ -42,8 +41,8 @@ namespace ListViewer.Model
                 .Select(z =>
                 {
                     return z.IsContextField
-                        ? ColumnValueReader<CsvReader>.FromContextEnvironmentsConstants(this._contextEnvironments, z.Key)
-                        : new CsvColumnValueReader(this._fieldsMapper.Get(z.Key));
+                        ? ColumnValueReader<CsvReader>.FromContextFields(this.ContextFields, z.Key)
+                        : new CsvColumnValueReader(this.FieldsMapper.Get(z.Key));
                 })
                 .ToArray();
 
@@ -51,8 +50,8 @@ namespace ListViewer.Model
                 .Select(z => 
                 {
                     return z.IsContextField
-                        ? ColumnValueReader<CsvReader>.FromContextEnvironmentsConstants(this._contextEnvironments, z.Key)
-                        : new CsvColumnValueReader(this._fieldsMapper.Get(z.Key));
+                        ? ColumnValueReader<CsvReader>.FromContextFields(this.ContextFields, z.Key)
+                        : new CsvColumnValueReader(this.FieldsMapper.Get(z.Key));
                 })
                 .ToArray();
 

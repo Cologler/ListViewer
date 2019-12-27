@@ -28,7 +28,7 @@ namespace ListViewer.Model
                     return this._serviceProvider.GetRequiredService<DirectoryDataQuerySource>();
 
                 default:
-                    throw new BadConfigurationException("unknown provider");
+                    throw new BadConfigurationException($"unknown provider: {dataSource.Provider}");
             }
         }
     }

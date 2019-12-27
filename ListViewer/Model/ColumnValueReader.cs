@@ -8,7 +8,7 @@ namespace ListViewer.Model
 
         public virtual string ReadValue(T data) => this.TryReadValue(data) ?? string.Empty;
 
-        public static ColumnValueReader<T> FromContextEnvironmentsConstants(Dictionary<string, string> envs, string key)
+        public static ColumnValueReader<T> FromContextFields(Dictionary<string, string> envs, string key)
         {
             return new ColumnValueReader<T>.ConstantsValueReader(envs.TryGetValue(key, out var v) ? v : $"%{key}%");
         }

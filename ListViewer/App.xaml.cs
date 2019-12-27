@@ -20,7 +20,7 @@ namespace ListViewer
     {
         public static IServiceProvider ServiceProvider { get; private set; } = default!;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             if (e.Args.Length > 1)
             {
@@ -50,6 +50,18 @@ namespace ListViewer
                 .AddTransient<CsvDataQuerySource>()
                 .AddTransient<Sqlite3DataQuerySource>()
                 .BuildServiceProvider();
+
+            try
+            {
+                await App.ServiceProvider.GetRequiredService<DataQueryProvider>()
+                    .LoadAsync();
+            }
+            catch (BadConfigurationException exc)
+            {
+                MessageBox.Show(exc.ToString());
+                this.Shutdown(3);
+                return;
+            }
             
             base.OnStartup(e);
         }

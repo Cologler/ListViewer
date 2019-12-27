@@ -6,15 +6,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using ListViewer.Abstractions;
 using ListViewer.ConfiguresModel;
+using ListViewer.Model.Bases;
 
 namespace ListViewer.Model
 {
-    class Sqlite3DataQuerySource : IDataQuerySource, IDisposable
+    class Sqlite3DataQuerySource : BaseDataQuerySource, 
+        IDataQuerySource, IDisposable
     {
         private SQLiteConnection _sqliteConnection = default!;
         private string _table = default!;
-        private FieldsMapper _fieldsMapper = default!;
-        private readonly Dictionary<string, string> _contextEnvironments = new Dictionary<string, string>();
 
         public void Dispose() => this._sqliteConnection?.Dispose();
 
@@ -23,7 +23,7 @@ namespace ListViewer.Model
             var dataSourceView = (ISqlite3DataSourceView)dataSource;
             this._sqliteConnection = new SQLiteConnection(dataSourceView.GetConnectionString());
             this._table = dataSourceView.GetTable();
-            this._fieldsMapper = dataSourceView.CreateFieldsMapper();
+            this.FieldsMapper = dataSourceView.CreateFieldsMapper();
             return Task.CompletedTask;
         }
 
@@ -45,8 +45,8 @@ namespace ListViewer.Model
                         .Select(z =>
                         {
                             return z.IsContextField
-                                ? ColumnValueReader<SQLiteDataReader>.FromContextEnvironmentsConstants(this._contextEnvironments, z.Key)
-                                : new SQLiteColumnValueReader(reader.GetOrdinal(this._fieldsMapper.Get(z.Key)));
+                                ? ColumnValueReader<SQLiteDataReader>.FromContextFields(this.ContextFields, z.Key)
+                                : new SQLiteColumnValueReader(reader.GetOrdinal(this.FieldsMapper.Get(z.Key)));
                         })
                         .ToArray();
 
@@ -54,8 +54,8 @@ namespace ListViewer.Model
                         .Select(z =>
                         {
                             return z.IsContextField
-                                ? ColumnValueReader<SQLiteDataReader>.FromContextEnvironmentsConstants(this._contextEnvironments, z.Key)
-                                : new SQLiteColumnValueReader(reader.GetOrdinal(this._fieldsMapper.Get(z.Key)));
+                                ? ColumnValueReader<SQLiteDataReader>.FromContextFields(this.ContextFields, z.Key)
+                                : new SQLiteColumnValueReader(reader.GetOrdinal(this.FieldsMapper.Get(z.Key)));
                         })
                         .ToArray();
 
