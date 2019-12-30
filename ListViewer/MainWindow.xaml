@@ -9,6 +9,11 @@
         Height="450" 
         Width="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        
         <Grid Margin="4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -37,6 +42,13 @@
                     </GridView>
                 </ListView.View>
             </ListView>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <StatusBar>
+                <TextBlock x:Name="CurrentStatus"
+                           Text="{Binding CurrentStatus}" />
+            </StatusBar>
         </Grid>
     </Grid>
 </Window>

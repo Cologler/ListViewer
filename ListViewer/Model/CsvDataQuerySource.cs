@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CsvHelper;
@@ -15,7 +16,8 @@ namespace ListViewer.Model
     class CsvDataQuerySource : BaseDataQuerySource, IDataQuerySource
     {
         private readonly IServiceProvider _serviceProvider;
-        private string _csvData = default!;
+        private Encoding _encoding = default!;
+        private string _filePath = default!;
 
         public CsvDataQuerySource(IServiceProvider serviceProvider)
         {
@@ -28,10 +30,11 @@ namespace ListViewer.Model
         {
             var dataSourceView = (IDataFileDataSourceView) dataSource;
             var filePath = dataSourceView.GetFilePath();
-            var encoding = this._serviceProvider.GetRequiredService<IEncodingResolver>()
+            this._filePath = filePath;
+            this._encoding = this._serviceProvider.GetRequiredService<IEncodingResolver>()
                 .GetEncoding(dataSourceView.Encoding);
-            this._csvData = File.ReadAllText(filePath, encoding);
             this.FieldsMapper = dataSourceView.CreateFieldsMapper();
+
             this.ContextFields["FilePath"] = filePath;
             this.ContextFields["FileName"] = Path.GetFileName(filePath);
 
@@ -40,7 +43,9 @@ namespace ListViewer.Model
 
         protected override ITable ConnectTableCore()
         {
-            var stringReader = new StringReader(this._csvData!);
+            var data = File.ReadAllText(this._filePath, this._encoding);
+
+            var stringReader = new StringReader(data);
             var reader = new CsvReader(stringReader);
             var table = new CsvTable(reader);
             foreach (var (k, v) in this.ContextFields)

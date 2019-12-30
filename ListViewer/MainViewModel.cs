@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using ListViewer.ConfiguresModel;
@@ -7,11 +9,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer
 {
-    public class MainViewModel
+    public class MainViewModel : INotifyPropertyChanged
     {
         private readonly object _syncRoot = new object();
         private CancellationTokenSource? _lastUpdateToken;
         private string _searchText = string.Empty;
+        private string _currentStatus = string.Empty;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public string SearchText
         {
@@ -22,6 +27,19 @@ namespace ListViewer
                 {
                     this._searchText = value;
                     _ = this.UpdateItemsAsync(300);
+                }
+            }
+        }
+
+        public string CurrentStatus
+        {
+            get => this._currentStatus;
+            set
+            {
+                if (this._currentStatus != value)
+                {
+                    this._currentStatus = value;
+                    this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.CurrentStatus)));
                 }
             }
         }
@@ -45,20 +63,31 @@ namespace ListViewer
             lock (this._syncRoot)
             {
                 this._lastUpdateToken?.Cancel();
-                this._lastUpdateToken?.Dispose();                
+                this._lastUpdateToken?.Dispose();
                 this._lastUpdateToken = tokenSource;
             }
 
             var token = tokenSource.Token;
 
-            this.Items.Clear();
-            var rows = await App.ServiceProvider.GetRequiredService<DataQueryProvider>()
-                .QueryAsync(this._searchText, token);
-
-            if (token.IsCancellationRequested) return;
-            foreach (var item in rows)
+            var sw = Stopwatch.StartNew();
+            
+            try
             {
-                this.Items.Add(new RowViewModel(item));
+                this.CurrentStatus = "searching...";
+                var rows = await App.ServiceProvider.GetRequiredService<DataQueryProvider>()
+                    .QueryAsync(this._searchText, token);
+                this.Items.Clear();
+                this.CurrentStatus = $"finished at {(double)sw.ElapsedMilliseconds/1000}s";
+
+                if (token.IsCancellationRequested) return;
+                foreach (var item in rows)
+                {
+                    this.Items.Add(new RowViewModel(item));
+                }
+            }
+            finally
+            {
+                sw.Stop();
             }
         }
 
