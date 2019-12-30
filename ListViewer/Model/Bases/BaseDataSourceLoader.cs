@@ -9,7 +9,7 @@ using ListViewer.ConfiguresModel;
 
 namespace ListViewer.Model.Bases
 {
-    abstract class BaseDataQuerySource
+    abstract class BaseDataSourceLoader
     {
         private ITable? _cachedTable;
 
@@ -17,7 +17,7 @@ namespace ListViewer.Model.Bases
 
         public FieldsMapper FieldsMapper { get; protected set; } = default!;
 
-        public virtual Task LoadAsync(DataSource dataSource)
+        public virtual Task ConfigureAsync(DataSource dataSource)
         {
             if (dataSource.LoadEntireTableToMemory)
             {

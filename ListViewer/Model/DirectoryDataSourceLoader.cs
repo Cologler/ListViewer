@@ -9,9 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class DirectoryDataQuerySource : CollectionDataQuerySource, IDataQuerySource
+    class DirectoryDataSourceLoader : CollectionDataSourceLoader, IDataSourceLoader
     {
-        public DirectoryDataQuerySource(IServiceProvider serviceProvider)
+        public DirectoryDataSourceLoader(IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
         }
@@ -37,7 +37,7 @@ namespace ListViewer.Model
             return r;
         }
 
-        public async Task LoadAsync(DataSource dataSource)
+        public async Task ConfigureAsync(DataSource dataSource)
         {
             var dataSourceView = (IDirectoryDataSourceView)dataSource;
             var templates = dataSourceView.Templates;

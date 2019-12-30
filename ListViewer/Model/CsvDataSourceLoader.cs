@@ -13,20 +13,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class CsvDataQuerySource : BaseDataQuerySource, IDataQuerySource
+    class CsvDataSourceLoader : BaseDataSourceLoader, IDataSourceLoader
     {
         private readonly IServiceProvider _serviceProvider;
         private Encoding _encoding = default!;
         private string _filePath = default!;
 
-        public CsvDataQuerySource(IServiceProvider serviceProvider)
+        public CsvDataSourceLoader(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
         }
 
         public string ProviderName => DataProviderNames.Csv;
 
-        public override Task LoadAsync(DataSource dataSource)
+        public override Task ConfigureAsync(DataSource dataSource)
         {
             var dataSourceView = (IDataFileDataSourceView) dataSource;
             var filePath = dataSourceView.GetFilePath();
@@ -38,7 +38,7 @@ namespace ListViewer.Model
             this.ContextFields["FilePath"] = filePath;
             this.ContextFields["FileName"] = Path.GetFileName(filePath);
 
-            return base.LoadAsync(dataSource);
+            return base.ConfigureAsync(dataSource);
         }
 
         protected override ITable ConnectTableCore()

@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class DataQueryProvider : CollectionDataQuerySource
+    class DataQueryProvider : CollectionDataSourceLoader
     {
         private readonly object _syncRoot = new object();
         private Task? _loader;

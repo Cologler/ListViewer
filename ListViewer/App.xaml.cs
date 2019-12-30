@@ -115,12 +115,12 @@ namespace ListViewer
                 .AddSingleton<IEncodingResolver, EncodingResolver>()
                 .AddSingleton<IDataQuerySourceFactory, DataQuerySourceFactory>()
                 .AddSingleton<DataQueryProvider>()
-                .AddTransient<DirectoryDataQuerySource>()
-                .AddTransient<IDataQuerySource>(p => p.GetRequiredService<DirectoryDataQuerySource>())
-                .AddTransient<CsvDataQuerySource>()
-                .AddTransient<IDataQuerySource>(p => p.GetRequiredService<CsvDataQuerySource>())
-                .AddTransient<Sqlite3DataQuerySource>()
-                .AddTransient<IDataQuerySource>(p => p.GetRequiredService<Sqlite3DataQuerySource>())
+                .AddTransient<DirectoryDataSourceLoader>()
+                .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<DirectoryDataSourceLoader>())
+                .AddTransient<CsvDataSourceLoader>()
+                .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<CsvDataSourceLoader>())
+                .AddTransient<Sqlite3DataSourceLoader>()
+                .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<Sqlite3DataSourceLoader>())
                 .BuildServiceProvider();
         }
     }

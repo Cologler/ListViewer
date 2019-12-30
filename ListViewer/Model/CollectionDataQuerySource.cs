@@ -10,12 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    abstract class CollectionDataQuerySource
+    abstract class CollectionDataSourceLoader
     {
-        private readonly List<IDataQuerySource> _subDataQuerySources = new List<IDataQuerySource>();
+        private readonly List<IDataSourceLoader> _subDataQuerySources = new List<IDataSourceLoader>();
         protected readonly IServiceProvider _serviceProvider;
 
-        public CollectionDataQuerySource(IServiceProvider serviceProvider)
+        public CollectionDataSourceLoader(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
         }
@@ -23,7 +23,7 @@ namespace ListViewer.Model
         protected async Task AddSubDataQuerySourceAsync(DataSource dataSource)
         {
             var querySource = this._serviceProvider.GetRequiredService<IDataQuerySourceFactory>().Create(dataSource);
-            await querySource.LoadAsync(dataSource);
+            await querySource.ConfigureAsync(dataSource);
             this._subDataQuerySources.Add(querySource);
         }
 

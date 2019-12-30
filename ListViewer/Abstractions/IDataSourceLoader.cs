@@ -7,11 +7,11 @@ using ListViewer.Model;
 
 namespace ListViewer.Abstractions
 {
-    interface IDataQuerySource
+    interface IDataSourceLoader
     {
         string ProviderName { get; }
 
-        Task LoadAsync(DataSource dataSource);
+        Task ConfigureAsync(DataSource dataSource);
 
         IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken);
     }

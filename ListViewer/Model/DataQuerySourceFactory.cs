@@ -15,11 +15,11 @@ namespace ListViewer.Model
         public DataQuerySourceFactory(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
-            this._typesMap = this._serviceProvider.GetServices<IDataQuerySource>()
+            this._typesMap = this._serviceProvider.GetServices<IDataSourceLoader>()
                 .ToDictionary(z => z.ProviderName, z => z.GetType());
         }
 
-        public IDataQuerySource Create(DataSource dataSource)
+        public IDataSourceLoader Create(DataSource dataSource)
         {
             var providerName = dataSource.Provider;
             if (providerName is null)
@@ -30,7 +30,7 @@ namespace ListViewer.Model
                 throw new BadConfigurationException($"unknown provider: {providerName}");
             }
 
-            return (IDataQuerySource)this._serviceProvider.GetRequiredService(type);
+            return (IDataSourceLoader)this._serviceProvider.GetRequiredService(type);
         }
     }
 }

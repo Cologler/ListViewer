@@ -11,15 +11,15 @@ using ListViewer.Model.Bases;
 
 namespace ListViewer.Model
 {
-    class Sqlite3DataQuerySource : BaseDataQuerySource, 
-        IDataQuerySource
+    class Sqlite3DataSourceLoader : BaseDataSourceLoader, 
+        IDataSourceLoader
     {
         private string _connectionString = default!;
         private string _table = default!;
 
         public string ProviderName => DataProviderNames.Sqlite3;
 
-        public override Task LoadAsync(DataSource dataSource)
+        public override Task ConfigureAsync(DataSource dataSource)
         {
             var dataSourceView = (ISqlite3DataSourceView)dataSource;
             this._connectionString = dataSourceView.GetConnectionString();
@@ -44,7 +44,7 @@ namespace ListViewer.Model
                 }
             }
 
-            return base.LoadAsync(dataSource);
+            return base.ConfigureAsync(dataSource);
         }
 
         private SQLiteConnection OpenConnection()

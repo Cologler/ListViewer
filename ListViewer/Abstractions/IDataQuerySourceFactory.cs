@@ -4,6 +4,6 @@ namespace ListViewer.Abstractions
 {
     interface IDataQuerySourceFactory
     {
-        IDataQuerySource Create(DataSource dataSource);
+        IDataSourceLoader Create(DataSource dataSource);
     }
 }
