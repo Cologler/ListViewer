@@ -1,6 +1,6 @@
 ﻿using ListViewer.Abstractions;
 
-namespace ListViewer.Model
+namespace ListViewer.Model.RecordFilters
 {
     class EmptyRecordFilter : IRecordFilter
     {

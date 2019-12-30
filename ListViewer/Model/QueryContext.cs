@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
 using ListViewer.Abstractions;
+using ListViewer.Model.RecordFilters;
 
 namespace ListViewer.Model
 {

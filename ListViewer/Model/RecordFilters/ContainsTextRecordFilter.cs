@@ -2,7 +2,7 @@
 using System.Linq;
 using ListViewer.Abstractions;
 
-namespace ListViewer.Model
+namespace ListViewer.Model.RecordFilters
 {
     class ContainsTextRecordFilter : IRecordFilter
     {
