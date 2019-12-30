@@ -31,7 +31,11 @@ namespace ListViewer.Model.Bases
 
         protected abstract ITable ConnectTableCore();
 
-        public void LoadEntireTableToMemory() => this._cachedTable = this.ConnectTableCore().CreateCopy();
+        public void LoadEntireTableToMemory()
+        {
+            using var table = this.ConnectTableCore();
+            this._cachedTable = table.CreateCopy();
+        }
 
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken)
         {
