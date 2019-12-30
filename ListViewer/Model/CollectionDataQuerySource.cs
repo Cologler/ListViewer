@@ -12,7 +12,7 @@ namespace ListViewer.Model
 {
     abstract class CollectionDataSourceLoader
     {
-        private readonly List<IDataSourceLoader> _subDataQuerySources = new List<IDataSourceLoader>();
+        private readonly List<IDataSourceLoader> _subDataSourceLoaders = new List<IDataSourceLoader>();
         protected readonly IServiceProvider _serviceProvider;
 
         public CollectionDataSourceLoader(IServiceProvider serviceProvider)
@@ -22,13 +22,13 @@ namespace ListViewer.Model
 
         protected async Task AddSubDataQuerySourceAsync(DataSource dataSource)
         {
-            var querySource = this._serviceProvider.GetRequiredService<IDataQuerySourceFactory>().Create(dataSource);
+            var querySource = this._serviceProvider.GetRequiredService<IDataSourceLoaderFactory>().Create(dataSource);
             await querySource.ConfigureAsync(dataSource);
-            this._subDataQuerySources.Add(querySource);
+            this._subDataSourceLoaders.Add(querySource);
         }
 
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken) =>
-            this._subDataQuerySources.SelectMany(
+            this._subDataSourceLoaders.SelectMany(
                 z => z.Query(queryContext, cancellationToken));
     }
 }

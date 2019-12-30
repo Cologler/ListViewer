@@ -113,7 +113,7 @@ namespace ListViewer
             return new ServiceCollection()
                 .AddSingleton(config)
                 .AddSingleton<IEncodingResolver, EncodingResolver>()
-                .AddSingleton<IDataQuerySourceFactory, DataQuerySourceFactory>()
+                .AddSingleton<IDataSourceLoaderFactory, DataSourceLoaderFactory>()
                 .AddSingleton<DataQueryProvider>()
                 .AddTransient<DirectoryDataSourceLoader>()
                 .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<DirectoryDataSourceLoader>())

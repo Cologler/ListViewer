@@ -7,12 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class DataQuerySourceFactory : IDataQuerySourceFactory
+    class DataSourceLoaderFactory : IDataSourceLoaderFactory
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly Dictionary<string, Type> _typesMap;
 
-        public DataQuerySourceFactory(IServiceProvider serviceProvider)
+        public DataSourceLoaderFactory(IServiceProvider serviceProvider)
         {
             this._serviceProvider = serviceProvider;
             this._typesMap = this._serviceProvider.GetServices<IDataSourceLoader>()
