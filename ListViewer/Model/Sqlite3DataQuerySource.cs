@@ -19,7 +19,7 @@ namespace ListViewer.Model
 
         public string ProviderName => DataProviderNames.Sqlite3;
 
-        public Task LoadAsync(DataSource dataSource)
+        public override Task LoadAsync(DataSource dataSource)
         {
             var dataSourceView = (ISqlite3DataSourceView)dataSource;
             this._connectionString = dataSourceView.GetConnectionString();
@@ -44,7 +44,7 @@ namespace ListViewer.Model
                 }
             }
 
-            return Task.CompletedTask;
+            return base.LoadAsync(dataSource);
         }
 
         private SQLiteConnection OpenConnection()

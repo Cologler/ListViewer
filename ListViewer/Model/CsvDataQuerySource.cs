@@ -24,7 +24,7 @@ namespace ListViewer.Model
 
         public string ProviderName => DataProviderNames.Csv;
 
-        public Task LoadAsync(DataSource dataSource)
+        public override Task LoadAsync(DataSource dataSource)
         {
             var dataSourceView = (IDataFileDataSourceView) dataSource;
             var filePath = dataSourceView.GetFilePath();
@@ -34,11 +34,8 @@ namespace ListViewer.Model
             this.FieldsMapper = dataSourceView.CreateFieldsMapper();
             this.ContextFields["FilePath"] = filePath;
             this.ContextFields["FileName"] = Path.GetFileName(filePath);
-            if (dataSource.LoadEntireTableToMemory)
-            {
-                this.LoadEntireTableToMemory();
-            }
-            return Task.CompletedTask;
+
+            return base.LoadAsync(dataSource);
         }
 
         protected override ITable ConnectTableCore()

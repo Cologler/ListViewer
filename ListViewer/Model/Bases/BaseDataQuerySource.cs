@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using ListViewer.Abstractions;
+using ListViewer.ConfiguresModel;
 
 namespace ListViewer.Model.Bases
 {
@@ -14,6 +16,16 @@ namespace ListViewer.Model.Bases
         public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
 
         public FieldsMapper FieldsMapper { get; protected set; } = default!;
+
+        public virtual Task LoadAsync(DataSource dataSource)
+        {
+            if (dataSource.LoadEntireTableToMemory)
+            {
+                this.LoadEntireTableToMemory();
+            }
+
+            return Task.CompletedTask;
+        }
 
         public virtual ITable ConnectTable() => this._cachedTable ?? this.ConnectTableCore();
 

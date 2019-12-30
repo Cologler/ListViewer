@@ -86,6 +86,19 @@ Config file format:
 
 ### `Sources` Values
 
+#### Common
+
+``` json
+{
+    // the option field map
+    "FieldMap": {
+        "column-name-from-data-source": "list-viewer-field-name"
+    },
+    // options for load entire table to memory, default value is false
+    "LoadEntireTableToMemory": false
+}
+```
+
 #### Sqlite table
 
 ``` json
@@ -93,10 +106,6 @@ Config file format:
     "Provider": "sqlite3",
     "ConnectionString": "...",
     "Table": "...",
-    // the option field map
-    "FieldMap": {
-        "sqlite-column-name": "list-viewer-field-name"
-    }
 }
 ```
 
@@ -110,10 +119,6 @@ Config file format:
     "FilePath": "",
     // leave null/empty to use utf-8
     "Encoding": "",
-    // the option field map
-    "FieldMap": {
-        "csv-column-name": "list-viewer-field-name"
-    }
 }
 ```
 
