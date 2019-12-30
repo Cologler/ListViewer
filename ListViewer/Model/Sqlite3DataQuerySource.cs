@@ -84,29 +84,15 @@ namespace ListViewer.Model
                         })
                         .ToArray();
 
-                    bool IsMatchRow()
-                    {
-                        if (queryContext.SearchText.Length == 0)
-                            return true;
-
-                        if (queryContext.SearchOnAll)
-                        {
-                            return this.IsDatasMatch(queryContext.SearchText,
-                                Enumerable.Range(0, reader.FieldCount)
-                                    .Select(z => reader.GetValue(z)?.ToString()).OfType<string>());
-                        }
-                        else
-                        {
-                            return this.IsDatasMatch(queryContext.SearchText,
-                                searchOnReaders.Select(z => z.TryReadValue(reader)).OfType<string>());
-                        }
-                    }
+                    var recordValuesReader = queryContext.SearchOnAll
+                        ? new ReadAllRecordSearchFieldValuesReader(reader) as IRecordSearchFieldValuesReader
+                        : new RecordSearchFieldValuesReader<SQLiteDataReader>(reader, searchOnReaders);
+                    var recordFilter = queryContext.RecordFilter;
 
                     while (reader.Read())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-
-                        if (IsMatchRow())
+                        if (recordFilter.IsMatch(recordValuesReader))
                         {
                             yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
                         }
@@ -131,6 +117,19 @@ namespace ListViewer.Model
 
                 return reader.GetValue(this._columnIndex)?.ToString();
             }
+        }
+
+        class ReadAllRecordSearchFieldValuesReader : IRecordSearchFieldValuesReader
+        {
+            private readonly SQLiteDataReader _reader;
+
+            public ReadAllRecordSearchFieldValuesReader(SQLiteDataReader reader)
+            {
+                this._reader = reader;
+            }
+
+            public IEnumerable<string> GetSearchFieldValues() =>
+                Enumerable.Range(0, this._reader.FieldCount).Select(z => this._reader.GetValue(z)?.ToString()).OfType<string>();
         }
     }
 }

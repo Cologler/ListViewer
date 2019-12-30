@@ -63,27 +63,15 @@ namespace ListViewer.Model
                 reader.Read();
                 reader.ReadHeader();
 
-                bool IsMatchRow()
-                {
-                    if (queryContext.SearchText.Length == 0)
-                        return true;
-
-                    if (queryContext.SearchOnAll)
-                    {
-                        return this.IsDatasMatch(queryContext.SearchText,
-                            Enumerable.Range(0, reader.Context.ColumnCount).Select(z => reader.GetField(z)));
-                    }
-                    else
-                    {
-                        return this.IsDatasMatch(queryContext.SearchText,
-                            searchOnReaders.Select(z => z.TryReadValue(reader)).OfType<string>());
-                    }
-                }
+                var recordValuesReader = queryContext.SearchOnAll
+                    ? new ReadAllRecordSearchFieldValuesReader(reader) as IRecordSearchFieldValuesReader
+                    : new RecordSearchFieldValuesReader<CsvReader>(reader, searchOnReaders);
+                var recordFilter = queryContext.RecordFilter;
 
                 while (reader.Read())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (IsMatchRow())
+                    if (recordFilter.IsMatch(recordValuesReader))
                     {
                         yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
                     }
@@ -104,6 +92,19 @@ namespace ListViewer.Model
             {
                 return reader.TryGetField(this._columnName, out string v) ? v : null;
             }
+        }
+
+        class ReadAllRecordSearchFieldValuesReader : IRecordSearchFieldValuesReader
+        {
+            private readonly CsvReader _reader;
+
+            public ReadAllRecordSearchFieldValuesReader(CsvReader reader)
+            {
+                this._reader = reader;
+            }
+
+            public IEnumerable<string> GetSearchFieldValues() =>
+                Enumerable.Range(0, this._reader.Context.ColumnCount).Select(z => this._reader.GetField(z));
         }
     }
 }
