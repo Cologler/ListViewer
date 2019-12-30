@@ -4,18 +4,16 @@ using ListViewer.Abstractions;
 
 namespace ListViewer.Model
 {
-    class RecordSearchFieldValuesReader<T> : IRecordSearchFieldValuesReader
+    class RecordSearchFieldValuesReader : IRecordSearchFieldValuesReader
     {
-        private readonly T _reader;
-        private readonly ColumnValueReader<T>[] _columnValueReaders;
+        private readonly ColumnValueReader[] _columnValueReaders;
 
-        public RecordSearchFieldValuesReader(T reader, ColumnValueReader<T>[] columnValueReaders)
+        public RecordSearchFieldValuesReader(ColumnValueReader[] columnValueReaders)
         {
-            this._reader = reader;
             this._columnValueReaders = columnValueReaders;
         }
 
         public IEnumerable<string> GetSearchFieldValues() =>
-            this._columnValueReaders.Select(z => z.TryReadValue(this._reader)).OfType<string>();
+            this._columnValueReaders.Select(z => z.TryReadValue()).OfType<string>();
     }
 }

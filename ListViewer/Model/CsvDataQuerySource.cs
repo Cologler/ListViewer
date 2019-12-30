@@ -39,33 +39,34 @@ namespace ListViewer.Model
 
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken)
         {
-            var searchOnReaders = queryContext.SearchOnColumns
-                .Select(z =>
-                {
-                    return z.IsContextField
-                        ? ColumnValueReader<CsvReader>.FromContextFields(this.ContextFields, z.Key)
-                        : new CsvColumnValueReader(this.FieldsMapper.Get(z.Key));
-                })
-                .ToArray();
-
-            var selectReaders = queryContext.SelectColumns
-                .Select(z => 
-                {
-                    return z.IsContextField
-                        ? ColumnValueReader<CsvReader>.FromContextFields(this.ContextFields, z.Key)
-                        : new CsvColumnValueReader(this.FieldsMapper.Get(z.Key));
-                })
-                .ToArray();
-
             using (var stringReader = new StringReader(this._csvData!))
             using (var reader = new CsvReader(stringReader))
             {
                 reader.Read();
                 reader.ReadHeader();
 
+
+                var searchOnReaders = queryContext.SearchOnColumns
+                    .Select(z =>
+                    {
+                        return z.IsContextField
+                            ? ColumnValueReader.FromContextFields(this.ContextFields, z.Key)
+                            : new CsvColumnValueReader(reader, this.FieldsMapper.Get(z.Key));
+                    })
+                    .ToArray();
+
+                var selectReaders = queryContext.SelectColumns
+                    .Select(z =>
+                    {
+                        return z.IsContextField
+                            ? ColumnValueReader.FromContextFields(this.ContextFields, z.Key)
+                            : new CsvColumnValueReader(reader, this.FieldsMapper.Get(z.Key));
+                    })
+                    .ToArray();
+
                 var recordValuesReader = queryContext.SearchOnAll
                     ? new ReadAllRecordSearchFieldValuesReader(reader) as IRecordSearchFieldValuesReader
-                    : new RecordSearchFieldValuesReader<CsvReader>(reader, searchOnReaders);
+                    : new RecordSearchFieldValuesReader(searchOnReaders);
                 var recordFilter = queryContext.RecordFilter;
 
                 while (reader.Read())
@@ -73,24 +74,26 @@ namespace ListViewer.Model
                     cancellationToken.ThrowIfCancellationRequested();
                     if (recordFilter.IsMatch(recordValuesReader))
                     {
-                        yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
+                        yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue()).ToArray());
                     }
                 }
             }
         }
 
-        class CsvColumnValueReader : ColumnValueReader<CsvReader>
+        class CsvColumnValueReader : ColumnValueReader
         {
+            private readonly CsvReader _reader;
             private readonly string _columnName;
 
-            public CsvColumnValueReader(string columnName)
+            public CsvColumnValueReader(CsvReader reader, string columnName)
             {
+                this._reader = reader;
                 this._columnName = columnName;
             }
 
-            public override string? TryReadValue(CsvReader reader)
+            public override string? TryReadValue()
             {
-                return reader.TryGetField(this._columnName, out string v) ? v : null;
+                return this._reader.TryGetField(this._columnName, out string v) ? v : null;
             }
         }
 

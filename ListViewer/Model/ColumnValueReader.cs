@@ -2,18 +2,18 @@
 
 namespace ListViewer.Model
 {
-    abstract class ColumnValueReader<T>
+    abstract class ColumnValueReader
     {
-        public abstract string? TryReadValue(T data);
+        public abstract string? TryReadValue();
 
-        public virtual string ReadValue(T data) => this.TryReadValue(data) ?? string.Empty;
+        public virtual string ReadValue() => this.TryReadValue() ?? string.Empty;
 
-        public static ColumnValueReader<T> FromContextFields(Dictionary<string, string> envs, string key)
+        public static ColumnValueReader FromContextFields(Dictionary<string, string> envs, string key)
         {
-            return new ColumnValueReader<T>.ConstantsValueReader(envs.TryGetValue(key, out var v) ? v : $"%{key}%");
+            return new ConstantsValueReader(envs.TryGetValue(key, out var v) ? v : $"%{key}%");
         }
 
-        class ConstantsValueReader : ColumnValueReader<T>
+        class ConstantsValueReader : ColumnValueReader
         {
             private readonly string _value;
 
@@ -22,7 +22,7 @@ namespace ListViewer.Model
                 this._value = value;
             }
 
-            public override string TryReadValue(T _) => this._value;
+            public override string TryReadValue() => this._value;
         }
     }
 }

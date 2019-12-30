@@ -70,8 +70,8 @@ namespace ListViewer.Model
                         .Select(z =>
                         {
                             return z.IsContextField
-                                ? ColumnValueReader<SQLiteDataReader>.FromContextFields(this.ContextFields, z.Key)
-                                : new SQLiteColumnValueReader(reader.GetOrdinal(this.FieldsMapper.Get(z.Key)));
+                                ? ColumnValueReader.FromContextFields(this.ContextFields, z.Key)
+                                : new SQLiteColumnValueReader(reader, reader.GetOrdinal(this.FieldsMapper.Get(z.Key)));
                         })
                         .ToArray();
 
@@ -79,14 +79,14 @@ namespace ListViewer.Model
                         .Select(z =>
                         {
                             return z.IsContextField
-                                ? ColumnValueReader<SQLiteDataReader>.FromContextFields(this.ContextFields, z.Key)
-                                : new SQLiteColumnValueReader(reader.GetOrdinal(this.FieldsMapper.Get(z.Key)));
+                                ? ColumnValueReader.FromContextFields(this.ContextFields, z.Key)
+                                : new SQLiteColumnValueReader(reader, reader.GetOrdinal(this.FieldsMapper.Get(z.Key)));
                         })
                         .ToArray();
 
                     var recordValuesReader = queryContext.SearchOnAll
                         ? new ReadAllRecordSearchFieldValuesReader(reader) as IRecordSearchFieldValuesReader
-                        : new RecordSearchFieldValuesReader<SQLiteDataReader>(reader, searchOnReaders);
+                        : new RecordSearchFieldValuesReader(searchOnReaders);
                     var recordFilter = queryContext.RecordFilter;
 
                     while (reader.Read())
@@ -94,28 +94,30 @@ namespace ListViewer.Model
                         cancellationToken.ThrowIfCancellationRequested();
                         if (recordFilter.IsMatch(recordValuesReader))
                         {
-                            yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
+                            yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue()).ToArray());
                         }
                     }
                 }
             }
         }
 
-        class SQLiteColumnValueReader : ColumnValueReader<SQLiteDataReader>
+        class SQLiteColumnValueReader : ColumnValueReader
         {
+            private readonly SQLiteDataReader _reader;
             private readonly int _columnIndex;
 
-            public SQLiteColumnValueReader(int columnIndex)
+            public SQLiteColumnValueReader(SQLiteDataReader reader, int columnIndex)
             {
+                this._reader = reader;
                 this._columnIndex = columnIndex;
             }
 
-            public override string? TryReadValue(SQLiteDataReader reader)
+            public override string? TryReadValue()
             {
                 if (this._columnIndex < 0)
                     return null;
 
-                return reader.GetValue(this._columnIndex)?.ToString();
+                return this._reader.GetValue(this._columnIndex)?.ToString();
             }
         }
 
