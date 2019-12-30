@@ -34,80 +34,70 @@ namespace ListViewer.Model
             this.FieldsMapper = dataSourceView.CreateFieldsMapper();
             this.ContextFields["FilePath"] = filePath;
             this.ContextFields["FileName"] = Path.GetFileName(filePath);
+            if (dataSource.LoadEntireTableToMemory)
+            {
+                this.LoadEntireTableToMemory();
+            }
             return Task.CompletedTask;
         }
 
-        public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken)
+        protected override ITable ConnectTableCore()
         {
-            using (var stringReader = new StringReader(this._csvData!))
-            using (var reader = new CsvReader(stringReader))
+            var stringReader = new StringReader(this._csvData!);
+            var reader = new CsvReader(stringReader);
+            var table = new CsvTable(reader);
+            foreach (var (k, v) in this.ContextFields)
             {
-                reader.Read();
-                reader.ReadHeader();
-
-
-                var searchOnReaders = queryContext.SearchOnColumns
-                    .Select(z =>
-                    {
-                        return z.IsContextField
-                            ? ColumnValueReader.FromContextFields(this.ContextFields, z.Key)
-                            : new CsvColumnValueReader(reader, this.FieldsMapper.Get(z.Key));
-                    })
-                    .ToArray();
-
-                var selectReaders = queryContext.SelectColumns
-                    .Select(z =>
-                    {
-                        return z.IsContextField
-                            ? ColumnValueReader.FromContextFields(this.ContextFields, z.Key)
-                            : new CsvColumnValueReader(reader, this.FieldsMapper.Get(z.Key));
-                    })
-                    .ToArray();
-
-                var recordValuesReader = queryContext.SearchOnAll
-                    ? new ReadAllRecordSearchFieldValuesReader(reader) as IRecordSearchFieldValuesReader
-                    : new RecordSearchFieldValuesReader(searchOnReaders);
-                var recordFilter = queryContext.RecordFilter;
-
-                while (reader.Read())
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    if (recordFilter.IsMatch(recordValuesReader))
-                    {
-                        yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue()).ToArray());
-                    }
-                }
+                table.ContextFields.Add(k, v);
             }
+            return table;
         }
 
-        class CsvColumnValueReader : ColumnValueReader
+        class CsvTable : ITable
         {
-            private readonly CsvReader _reader;
-            private readonly string _columnName;
+            private readonly CsvReader _csvReader;
 
-            public CsvColumnValueReader(CsvReader reader, string columnName)
+            public CsvTable(CsvReader csvReader)
             {
-                this._reader = reader;
-                this._columnName = columnName;
+                this._csvReader = csvReader;
+
+                csvReader.Read();
+                csvReader.ReadHeader();
             }
 
-            public override string? TryReadValue()
-            {
-                return this._reader.TryGetField(this._columnName, out string v) ? v : null;
-            }
+            public IReadOnlyDictionary<string, int> HeaderIndexes => this._csvReader
+                .Context.NamedIndexes.ToDictionary(z => z.Key, z => z.Value[0]);
+
+            public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
+
+            IReadOnlyDictionary<string, string> ITable.ContextFields => this.ContextFields;
+
+            void IDisposable.Dispose() => this._csvReader.Dispose();
+
+            public ITableRowReader OpenReader() => new CsvTableRowReader(this._csvReader);
         }
 
-        class ReadAllRecordSearchFieldValuesReader : IRecordSearchFieldValuesReader
+        class CsvTableRowReader : ITableRowReader, IRecordSearchFieldValuesReader
         {
-            private readonly CsvReader _reader;
+            private readonly CsvReader _csvReader;
 
-            public ReadAllRecordSearchFieldValuesReader(CsvReader reader)
+            public CsvTableRowReader(CsvReader csvReader)
             {
-                this._reader = reader;
+                this._csvReader = csvReader;
             }
 
-            public IEnumerable<string> GetSearchFieldValues() =>
-                Enumerable.Range(0, this._reader.Context.ColumnCount).Select(z => this._reader.GetField(z));
+            public void Dispose() { }
+
+            public string? GetColumnValue(int index) => this._csvReader.GetField(index);
+
+            public string?[] GetColumnValues() =>
+                Enumerable.Range(0, this._csvReader.Context.HeaderRecord.Length)
+                    .Select(z => this._csvReader.GetField(z))
+                    .ToArray();
+
+            public IEnumerable<string> GetSearchFieldValues() => this.GetColumnValues().OfType<string>();
+
+            public bool Read() => this._csvReader.Read();
         }
     }
 }
