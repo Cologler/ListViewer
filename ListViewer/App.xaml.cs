@@ -39,6 +39,7 @@ namespace ListViewer
 
             try
             {
+                ServiceProvider.GetRequiredService<ConfigurationFile>().Check();
                 await ServiceProvider.GetRequiredService<DataQueryProvider>()
                     .LoadAsync();
             }

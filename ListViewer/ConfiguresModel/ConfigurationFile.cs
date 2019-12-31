@@ -29,5 +29,14 @@ namespace ListViewer.ConfiguresModel
                 .Where(z => z.IsDisplay)
                 .ToArray() ?? Array.Empty<Column>();
         }
+
+        public void Check()
+        {
+            if (this.Columns is null)
+                throw new BadConfigurationException("\"Columns\" cannot be null.");
+
+            if (!this.Columns.OfType<Column>().Any(z => z.IsDisplay))
+                throw new BadConfigurationException("none columns will be display.");
+        }
     }
 }

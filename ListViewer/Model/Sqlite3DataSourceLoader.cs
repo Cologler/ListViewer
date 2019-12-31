@@ -99,7 +99,7 @@ namespace ListViewer.Model
             public ITableRowReader OpenReader() => new SQLiteTableRowReader(this._reader);
         }
 
-        class SQLiteTableRowReader : ITableRowReader, ITableRowValuesSelector
+        class SQLiteTableRowReader : ITableRowReader
         {
             private readonly SQLiteDataReader _reader;
 
@@ -114,8 +114,6 @@ namespace ListViewer.Model
 
             public string?[] GetColumnValues() =>
                 Enumerable.Range(0, this._reader.FieldCount).Select(z => this._reader.GetValue(z)?.ToString()).ToArray();
-
-            public IEnumerable<string> GetValues(ITableRowReader reader) => this.GetColumnValues().OfType<string>();
 
             public bool Read() => this._reader.Read();
         }

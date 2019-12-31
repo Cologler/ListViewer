@@ -46,7 +46,7 @@ namespace ListViewer.Model.Bases
                     .ToArray();
 
                 var recordValuesReader = queryContext.SearchOnAll
-                    ? (ITableRowValuesSelector)reader
+                    ? new TableRowEntireValuesSelector() as ITableRowValuesSelector
                     : new TableRowValuesSelector(
                         ColumnValueReader.CreateReaders(
                             table, reader, queryContext.SearchOnColumns, this.FieldsMapper)
