@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ListViewer.Abstractions;
 
 namespace ListViewer.Model
@@ -14,9 +15,9 @@ namespace ListViewer.Model
         {
             foreach (var readerInfo in readerInfos)
             {
-                if (readerInfo.IsContextField)
+                if (readerInfo.IsContextVariable)
                 {
-                    yield return FromContextFields(table.ContextFields, readerInfo.Key);
+                    yield return FromContextFields(table.ContextVariables, readerInfo.Key);
                 }
                 else
                 {

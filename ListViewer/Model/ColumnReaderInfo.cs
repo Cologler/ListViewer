@@ -2,14 +2,14 @@
 {
     struct ColumnReaderInfo
     {
-        public ColumnReaderInfo(string key, bool isContextField)
+        public ColumnReaderInfo(string key, bool isContextVariable)
         {
             this.Key = key;
-            this.IsContextField = isContextField;
+            this.IsContextVariable = isContextVariable;
         }
 
         public string Key { get; }
 
-        public bool IsContextField { get; }
+        public bool IsContextVariable { get; }
     }
 }

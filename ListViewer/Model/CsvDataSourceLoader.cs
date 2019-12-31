@@ -72,7 +72,7 @@ namespace ListViewer.Model
 
             public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
 
-            IReadOnlyDictionary<string, string> ITable.ContextFields => this.ContextFields;
+            IReadOnlyDictionary<string, string> ITable.ContextVariables => this.ContextFields;
 
             void IDisposable.Dispose() => this._csvReader.Dispose();
 

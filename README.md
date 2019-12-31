@@ -78,9 +78,9 @@ Config file format:
     // is display on main window or not, default value is true
     "IsDisplay": true,
 
-    // is the column field from context,
+    // is the column field is a variable from context,
     // for example, "FileName" can read from context.
-    "IsContextField": false
+    "IsContextVariable": false
 }
 ```
 

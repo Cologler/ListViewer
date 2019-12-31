@@ -10,6 +10,6 @@
 
         public bool IsDisplay { get; set; } = true;
 
-        public bool IsContextField { get; set; }
+        public bool IsContextVariable { get; set; }
     }
 }

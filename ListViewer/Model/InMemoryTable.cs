@@ -12,7 +12,7 @@ namespace ListViewer.Model
 
         public ITable CacheFrom(ITable table)
         {
-            foreach (var (k, v) in table.ContextFields)
+            foreach (var (k, v) in table.ContextVariables)
             {
                 this._contextFields.Add(k, v);
             }
@@ -32,7 +32,7 @@ namespace ListViewer.Model
 
         public IReadOnlyDictionary<string, int> HeaderIndexes => _headerIndexes;
 
-        public IReadOnlyDictionary<string, string> ContextFields => _contextFields;
+        public IReadOnlyDictionary<string, string> ContextVariables => _contextFields;
 
         public void Dispose() { }
 
