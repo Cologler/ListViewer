@@ -6,9 +6,9 @@ namespace ListViewer.Model
 {
     abstract class ColumnValueReader
     {
-        public abstract string? TryReadValue();
+        public abstract string? TryReadValue(ITableRowReader reader);
 
-        public virtual string ReadValue() => this.TryReadValue() ?? string.Empty;
+        public virtual string ReadValue(ITableRowReader reader) => this.TryReadValue(reader) ?? string.Empty;
 
         public static IEnumerable<ColumnValueReader> CreateReaders(ITable table, ITableRowReader tableRowReader,
             IEnumerable<ColumnReaderInfo> readerInfos, FieldsMapper fieldsMapper)
@@ -43,7 +43,7 @@ namespace ListViewer.Model
                 this._value = value;
             }
 
-            public override string? TryReadValue() => this._value;
+            public override string? TryReadValue(ITableRowReader reader) => this._value;
         }
 
         public static ColumnValueReader FromIndex(ITableRowReader tableRowReader, int index) => index < 0
@@ -61,7 +61,7 @@ namespace ListViewer.Model
                 this._index = index;
             }
 
-            public override string? TryReadValue() => this._tableRowReader.GetColumnValue(this._index);
+            public override string? TryReadValue(ITableRowReader reader) => this._tableRowReader.GetColumnValue(this._index);
         }
     }
 }

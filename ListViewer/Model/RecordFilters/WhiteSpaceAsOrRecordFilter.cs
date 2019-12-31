@@ -13,9 +13,9 @@ namespace ListViewer.Model.RecordFilters
             this._searchTexts = searchText.Split(" ", StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public bool IsMatch(IRecordSearchFieldValuesReader reader)
+        public bool IsMatch(ITableRowReader reader, ITableRowValuesSelector selector)
         {
-            foreach (var value in reader.GetSearchFieldValues())
+            foreach (var value in selector.GetValues(reader))
             {
                 foreach (var word in this._searchTexts)
                 {

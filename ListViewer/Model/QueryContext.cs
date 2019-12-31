@@ -9,21 +9,18 @@ namespace ListViewer.Model
     {
         public QueryContext(string searchText, IReadOnlyCollection<ColumnReaderInfo> searchOn, IReadOnlyCollection<ColumnReaderInfo> select)
         {
-            this.SearchText = searchText;
             this.SearchOnColumns = searchOn;
             this.SelectColumns = select;
 
-            if (string.IsNullOrEmpty(this.SearchText))
+            if (string.IsNullOrEmpty(searchText))
             {
                 this.RecordFilter = new EmptyRecordFilter();
             }
             else
             {
-                this.RecordFilter = new ContainsTextRecordFilter(this.SearchText);
+                this.RecordFilter = new ContainsTextRecordFilter(searchText);
             }
         }
-
-        public string SearchText { get; }
 
         public IReadOnlyCollection<ColumnReaderInfo> SearchOnColumns { get;  }
 

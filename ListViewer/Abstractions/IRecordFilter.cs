@@ -2,6 +2,6 @@
 {
     interface IRecordFilter
     {
-        bool IsMatch(IRecordSearchFieldValuesReader reader);
+        bool IsMatch(ITableRowReader reader, ITableRowValuesSelector selector);
     }
 }

@@ -75,7 +75,7 @@ namespace ListViewer.Model
             public ITableRowReader OpenReader() => new CsvTableRowReader(this._csvReader);
         }
 
-        class CsvTableRowReader : ITableRowReader, IRecordSearchFieldValuesReader
+        class CsvTableRowReader : ITableRowReader, ITableRowValuesSelector
         {
             private readonly CsvReader _csvReader;
 
@@ -93,7 +93,7 @@ namespace ListViewer.Model
                     .Select(z => this._csvReader.GetField(z))
                     .ToArray();
 
-            public IEnumerable<string> GetSearchFieldValues() => this.GetColumnValues().OfType<string>();
+            public IEnumerable<string> GetValues(ITableRowReader reader) => this.GetColumnValues().OfType<string>();
 
             public bool Read() => this._csvReader.Read();
         }

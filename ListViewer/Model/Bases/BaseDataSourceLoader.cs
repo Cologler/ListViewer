@@ -46,8 +46,8 @@ namespace ListViewer.Model.Bases
                     .ToArray();
 
                 var recordValuesReader = queryContext.SearchOnAll
-                    ? (IRecordSearchFieldValuesReader)reader
-                    : new RecordSearchFieldValuesReader(
+                    ? (ITableRowValuesSelector)reader
+                    : new TableRowValuesSelector(
                         ColumnValueReader.CreateReaders(
                             table, reader, queryContext.SearchOnColumns, this.FieldsMapper)
                         .ToArray());
@@ -56,9 +56,9 @@ namespace ListViewer.Model.Bases
                 while (reader.Read())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    if (recordFilter.IsMatch(recordValuesReader))
+                    if (recordFilter.IsMatch(reader, recordValuesReader))
                     {
-                        yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue()).ToArray());
+                        yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
                     }
                 }
             }

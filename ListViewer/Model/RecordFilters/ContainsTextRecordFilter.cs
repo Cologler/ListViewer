@@ -13,9 +13,9 @@ namespace ListViewer.Model.RecordFilters
             this._searchText = searchText;
         }
 
-        public bool IsMatch(IRecordSearchFieldValuesReader reader)
+        public bool IsMatch(ITableRowReader reader, ITableRowValuesSelector selector)
         {
-            return reader.GetSearchFieldValues()
+            return selector.GetValues(reader)
                 .Where(data => data.Contains(this._searchText, StringComparison.OrdinalIgnoreCase))
                 .Any();
         }
