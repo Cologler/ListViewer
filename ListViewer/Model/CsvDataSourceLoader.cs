@@ -35,8 +35,8 @@ namespace ListViewer.Model
                 .GetEncoding(dataSourceView.Encoding);
             this.FieldsMapper = dataSourceView.CreateFieldsMapper();
 
-            this.ContextFields["FilePath"] = filePath;
-            this.ContextFields["FileName"] = Path.GetFileName(filePath);
+            this.ContextVariables["FilePath"] = filePath;
+            this.ContextVariables["FileName"] = Path.GetFileName(filePath);
 
             return base.ConfigureAsync(dataSource);
         }
@@ -47,21 +47,19 @@ namespace ListViewer.Model
 
             var stringReader = new StringReader(data);
             var reader = new CsvReader(stringReader);
-            var table = new CsvTable(reader);
-            foreach (var (k, v) in this.ContextFields)
-            {
-                table.ContextFields.Add(k, v);
-            }
+            var table = new CsvTable(reader, this.ContextVariables);
             return table;
         }
 
         class CsvTable : ITable
         {
             private readonly CsvReader _csvReader;
+            private readonly Dictionary<string, string> _contextVariables;
 
-            public CsvTable(CsvReader csvReader)
+            public CsvTable(CsvReader csvReader, IReadOnlyDictionary<string, string> contextVariables)
             {
                 this._csvReader = csvReader;
+                this._contextVariables = new Dictionary<string, string>(contextVariables);
 
                 csvReader.Read();
                 csvReader.ReadHeader();
@@ -70,9 +68,7 @@ namespace ListViewer.Model
             public IReadOnlyDictionary<string, int> HeaderIndexes => this._csvReader
                 .Context.NamedIndexes.ToDictionary(z => z.Key, z => z.Value[0]);
 
-            public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
-
-            IReadOnlyDictionary<string, string> ITable.ContextVariables => this.ContextFields;
+            public IReadOnlyDictionary<string, string> ContextVariables => this._contextVariables;
 
             void IDisposable.Dispose() => this._csvReader.Dispose();
 

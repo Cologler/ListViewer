@@ -13,7 +13,7 @@ namespace ListViewer.Model.Bases
     {
         private ITable? _cachedTable;
 
-        public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
+        public Dictionary<string, string> ContextVariables { get; } = new Dictionary<string, string>();
 
         public FieldsMapper FieldsMapper { get; protected set; } = default!;
 

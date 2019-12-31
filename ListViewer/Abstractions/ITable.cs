@@ -13,6 +13,6 @@ namespace ListViewer.Abstractions
 
         IReadOnlyDictionary<string, string> ContextVariables { get; }
 
-        ITable CreateCopy() => new InMemoryTable().CacheFrom(this);
+        ITable CreateCopy() => new InMemoryTable(this);
     }
 }
