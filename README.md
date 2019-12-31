@@ -146,3 +146,10 @@ Config file format:
     }
 }
 ```
+
+### Context Variables
+
+|Variable name| description | supported providers |
+| :--         |  :--        |:--                  |
+| FilePath    |             | `csv`               |
+| FileName    |             | `csv`               |
