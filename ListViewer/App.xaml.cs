@@ -20,6 +20,8 @@ namespace ListViewer
     {
         public static IServiceProvider ServiceProvider { get; private set; } = default!;
 
+        public new static App Current => (App)Application.Current;
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             DispatcherUnhandledException += this.App_DispatcherUnhandledException;
