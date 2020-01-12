@@ -24,19 +24,23 @@ namespace ListViewer
         public MainWindow()
         {
             InitializeComponent();
+            this.OnServiceProviderChanged(App.ServiceProvider);
+        }
 
-            if (App.ServiceProvider.GetRequiredService<ConfigurationFile>().Title is string title)
-            {
-                this.Title = title;
-            }
+        private void OnServiceProviderChanged(IServiceProvider serviceProvider)
+        {
+            var config = serviceProvider.GetRequiredService<ConfigurationFile>();
+
+            this.Title = config.Title ?? "ListViewer";
+
 
             this.GridView1.Columns.Clear();
-            var config = App.ServiceProvider.GetRequiredService<ConfigurationFile>();
+            
             if (config.Columns != null)
             {
                 var gvcs = config.GetDisplayColumns()
                     .Select(z => z.ColumnName ?? z.ColumnField ?? throw new BadConfigurationException("ColumnField and ColumnName both are null."))
-                    .Select((z, i) => 
+                    .Select((z, i) =>
                     {
                         var binding = new Binding($"[{i}]");
                         return new GridViewColumn
