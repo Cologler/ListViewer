@@ -1,0 +1,31 @@
+name: .NET Core
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Test
+      run: dotnet test
+    - name: Make artifact
+      run: mkdir ./artifacts && cp ./ListViewer/bin/Release/*/* ./artifacts
+    - name: Make artifact zip
+      uses: TheDoctor0/zip-release@v0.2.1
+      with:
+        filename: artifacts.zip
+        path: artifacts/
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: dlls
+        path: artifacts.zip
