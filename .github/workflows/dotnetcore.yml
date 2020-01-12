@@ -17,15 +17,10 @@ jobs:
       run: dotnet build --configuration Release
     - name: Test
       run: dotnet test
-    - name: Make artifact
-      run: mkdir ./artifacts && cp ./ListViewer/bin/Release/*/* ./artifacts
-    - name: Make artifact zip
-      uses: TheDoctor0/zip-release@v0.2.1
-      with:
-        filename: artifacts.zip
-        path: artifacts/
+    - name: Make artifact dir
+      run: mkdir "./artifacts"  -and get-childitem -path "./ListViewer/bin/Release/*/*" | copy-item -destination "./artifacts"
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: dlls
-        path: artifacts.zip
+        path: ./artifacts
