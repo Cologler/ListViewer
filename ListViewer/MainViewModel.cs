@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
@@ -12,11 +13,17 @@ namespace ListViewer
     public class MainViewModel : INotifyPropertyChanged
     {
         private readonly object _syncRoot = new object();
+        private readonly IServiceProvider _serviceProvider;
         private CancellationTokenSource? _lastUpdateToken;
         private string _searchText = string.Empty;
         private string _currentStatus = string.Empty;
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        public MainViewModel(IServiceProvider serviceProvider)
+        {
+            this._serviceProvider = serviceProvider;
+        }
 
         public string SearchText
         {
@@ -74,7 +81,7 @@ namespace ListViewer
             try
             {
                 this.CurrentStatus = "searching...";
-                var rows = await App.ServiceProvider.GetRequiredService<DataQueryProvider>()
+                var rows = await this._serviceProvider.GetRequiredService<DataQueryProvider>()
                     .QueryAsync(this._searchText, token);
                 this.Items.Clear();
                 this.CurrentStatus = $"finished at {(double)sw.ElapsedMilliseconds/1000}s";

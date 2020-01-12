@@ -33,20 +33,17 @@ namespace ListViewer
 
             this.Title = config.Title ?? "ListViewer";
 
-
-            this.GridView1.Columns.Clear();
-            
+            this.GridView1.Columns.Clear();            
             if (config.Columns != null)
             {
                 var gvcs = config.GetDisplayColumns()
-                    .Select(z => z.ColumnName ?? z.ColumnField ?? throw new BadConfigurationException("ColumnField and ColumnName both are null."))
+                    .Select(z => z.ColumnName ?? z.ColumnField!)
                     .Select((z, i) =>
                     {
-                        var binding = new Binding($"[{i}]");
                         return new GridViewColumn
                         {
                             Header = z,
-                            DisplayMemberBinding = binding
+                            DisplayMemberBinding = new Binding($"[{i}]")
                         };
                     })
                     .ToArray();
@@ -56,7 +53,7 @@ namespace ListViewer
                 }
             }
 
-            var viewModel = new MainViewModel();
+            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
             this.DataContext = viewModel;
             _ = viewModel.LoadAsync();
         }

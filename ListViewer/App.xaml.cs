@@ -114,9 +114,10 @@ namespace ListViewer
         internal static IServiceProvider CreateFrom(ConfigurationFile config)
         {
             return new ServiceCollection()
-                .AddSingleton(config)
                 .AddSingleton<IEncodingResolver, EncodingResolver>()
                 .AddSingleton<IDataSourceLoaderFactory, DataSourceLoaderFactory>()
+                .AddSingleton(config)
+                .AddSingleton<MainViewModel>()
                 .AddSingleton<DataQueryProvider>()
                 .AddTransient<DirectoryDataSourceLoader>()
                 .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<DirectoryDataSourceLoader>())

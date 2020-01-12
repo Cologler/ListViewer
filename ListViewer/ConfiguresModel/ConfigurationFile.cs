@@ -10,7 +10,7 @@ namespace ListViewer.ConfiguresModel
     {
         public string? Title { get; set; }
 
-        public List<Column?>? Columns { get; set; }
+        public List<Column> Columns { get; set; } = default!;
 
         public List<DataSource?>? Sources { get; set; }
 
@@ -35,8 +35,19 @@ namespace ListViewer.ConfiguresModel
             if (this.Columns is null)
                 throw new BadConfigurationException("\"Columns\" cannot be null.");
 
-            if (!this.Columns.OfType<Column>().Any(z => z.IsDisplay))
-                throw new BadConfigurationException("none columns will be display.");
+            if (this.Columns.Any(z => z is null)) 
+            {
+                this.Columns = this.Columns.OfType<Column>().ToList();
+            }
+
+            if (!this.Columns.Any(z => z.IsDisplay))
+                throw new BadConfigurationException("No column will be display.");
+
+            foreach (var column in this.Columns)
+            {
+                if (column.ColumnName is null && column.ColumnField is null)
+                    throw new BadConfigurationException("ColumnField and ColumnName both are null.");
+            }
         }
     }
 }

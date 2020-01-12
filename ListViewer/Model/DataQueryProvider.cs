@@ -58,17 +58,11 @@ namespace ListViewer.Model
 
             var searchOn = config
                 .GetSearchOnColumns()
-                .Select(z => new ColumnReaderInfo(
-                    z.ColumnField ?? z.ColumnName ?? throw new BadConfigurationException("ColumnField and ColumnName both are null."),
-                    z.IsContextVariable
-                ))
+                .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
                 .ToArray();
             var select = config
                  .GetDisplayColumns()
-                 .Select(z => new ColumnReaderInfo(
-                     z.ColumnField ?? z.ColumnName ?? throw new BadConfigurationException("ColumnField and ColumnName both are null."),
-                     z.IsContextVariable
-                 ))
+                 .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
                  .ToArray();
 
             if (select.Length == 0)
