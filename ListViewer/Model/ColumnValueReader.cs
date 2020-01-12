@@ -17,7 +17,7 @@ namespace ListViewer.Model
             {
                 if (readerInfo.IsContextVariable)
                 {
-                    yield return FromContextFields(table.ContextVariables, readerInfo.Key);
+                    yield return FromValue(table.ContextVariables.TryGetValue(readerInfo.Key, out var v) ? v : $"%{readerInfo.Key}%");
                 }
                 else
                 {
@@ -25,11 +25,6 @@ namespace ListViewer.Model
                         table.HeaderIndexes.GetValueOrDefault(fieldsMapper.Get(readerInfo.Key), -1));
                 }
             }
-        }
-
-        public static ColumnValueReader FromContextFields(IReadOnlyDictionary<string, string> envs, string key)
-        {
-            return FromValue(envs.TryGetValue(key, out var v) ? v : $"%{key}%");
         }
 
         public static ColumnValueReader FromValue(string? value) => new ConstantsValueReader(value);
