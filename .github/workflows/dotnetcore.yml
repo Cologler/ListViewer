@@ -1,0 +1,26 @@
+name: .NET Core
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Test
+      run: dotnet test
+    - name: Make artifact dir
+      run: (mkdir "./artifacts")  -and (get-childitem -path "./ListViewer/bin/Release/*/*" | copy-item -destination "./artifacts" -recurse)
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: release
+        path: ./artifacts
