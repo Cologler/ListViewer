@@ -18,7 +18,7 @@ jobs:
     - name: Test
       run: dotnet test
     - name: Make artifact dir
-      run: mkdir "./artifacts"  -and get-childitem -path "./ListViewer/bin/Release/*/*" | copy-item -destination "./artifacts"
+      run: (mkdir "./artifacts")  -and (get-childitem -path "./ListViewer/bin/Release/*/*" | copy-item -destination "./artifacts" -recurse)
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
