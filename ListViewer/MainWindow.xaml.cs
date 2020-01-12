@@ -24,11 +24,21 @@ namespace ListViewer
         public MainWindow()
         {
             InitializeComponent();
-            this.OnServiceProviderChanged(App.ServiceProvider);
+
+            var provider = App.Current.ScopedServiceProvider;
+            if (provider != null)
+            {
+                this.OnServiceProviderChanged(provider);
+            }
         }
 
         private void OnServiceProviderChanged(IServiceProvider serviceProvider)
         {
+            if (serviceProvider is null)
+                throw new ArgumentNullException(nameof(serviceProvider));
+
+            (this.DataContext as MainViewModel)?.Cancel();
+
             var config = serviceProvider.GetRequiredService<ConfigurationFile>();
 
             this.Title = config.Title ?? "ListViewer";
@@ -56,6 +66,21 @@ namespace ListViewer
             var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
             this.DataContext = viewModel;
             _ = viewModel.LoadAsync();
+        }
+
+        private async void Window_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var dataStringArray = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (dataStringArray.Length == 1)
+                {
+                    if (await App.Current.TryReadConfiguration(dataStringArray[0]))
+                    {
+                        this.OnServiceProviderChanged(App.Current.ScopedServiceProvider!);
+                    }
+                }
+            }
         }
     }
 }

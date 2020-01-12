@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Jasily.DI.ScopedValue;
 using ListViewer.Abstractions;
 using ListViewer.ConfiguresModel;
 using ListViewer.Model;
@@ -18,11 +19,14 @@ namespace ListViewer
     /// </summary>
     public partial class App : Application
     {
-        public static IServiceProvider ServiceProvider { get; private set; } = default!;
+        private IServiceProvider _appServiceProvider = default!;
+        private IServiceScope? _serviceScope;
 
         public new static App Current => (App)Application.Current;
 
-        protected override async void OnStartup(StartupEventArgs e)
+        public IServiceProvider? ScopedServiceProvider => this._serviceScope?.ServiceProvider;
+
+        protected override void OnStartup(StartupEventArgs e)
         {
             DispatcherUnhandledException += this.App_DispatcherUnhandledException;
 
@@ -33,23 +37,15 @@ namespace ListViewer
                 return;
             }
 
-            var configFileName = e.Args.Length == 1 ? e.Args[0]! : Constants.DefaultConfigFileName;
-
-            var text = this.ReadTextOrExit(configFileName);
-            var config = this.ParseConfigurationFile(text);
-            ServiceProvider = CreateFrom(config);
-
-            try
+            this._appServiceProvider = CreateServiceProvider();
+            if (e.Args.Length == 1)
             {
-                ServiceProvider.GetRequiredService<ConfigurationFile>().Check();
-                await ServiceProvider.GetRequiredService<DataQueryProvider>()
-                    .LoadAsync();
+                _ = this.TryReadConfiguration(e.Args[0]);
             }
-            catch (BadConfigurationException exc)
+            else if (File.Exists(Constants.DefaultConfigFileName))
             {
-                this.OnException(exc);
-                return;
-            }
+                _ = this.TryReadConfiguration(Constants.DefaultConfigFileName);
+            }            
             
             base.OnStartup(e);
         }
@@ -68,57 +64,78 @@ namespace ListViewer
             }
         }
 
-        private void OnException(BadConfigurationException e)
-        {
-            MessageBox.Show(e.Message, "Bad configuration file");
-            this.Shutdown(3);
-        }
+        public void OnException(BadConfigurationException e) => MessageBox.Show(e.Message, "Bad configuration file");
 
-        private string ReadTextOrExit(string fileName)
+        public async Task<bool> TryReadConfiguration(string filePath)
         {
-            if (File.Exists(fileName))
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            // read file
+            string? text = default;
+            if (File.Exists(filePath))
             {
                 try
                 {
-                    return File.ReadAllText(fileName);
+                    text = File.ReadAllText(filePath);
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show($"Unable to read file ({fileName}): \n" + e.ToString());
-                }    
+                    MessageBox.Show($"Unable to read file ({filePath}): \n" + e.ToString());
+                }
             }
             else
             {
-                MessageBox.Show($"File ({fileName}) does not exists.");
+                MessageBox.Show($"File ({filePath}) does not exists.");
             }
+            if (text is null)
+                return false;
 
-            this.Shutdown(2);
-            throw new NotImplementedException();
-        }
-
-        private ConfigurationFile ParseConfigurationFile(string content)
-        {
+            // parse...
+            ConfigurationFile? config = default;
             try
             {
-                return JsonSerializer.Deserialize<ConfigurationFile>(content);
+                config = JsonSerializer.Deserialize<ConfigurationFile>(text);
             }
             catch (JsonException e)
             {
                 MessageBox.Show($"Error on parse config file:\n" + e.ToString());
             }
+            if (config is null)
+                return false;
 
-            this.Shutdown(3);
-            throw new NotImplementedException();
+            // check...
+            var scope = this._appServiceProvider.CreateScopeWithValues((typeof(ConfigurationFile), config));
+            try
+            {
+                scope.ServiceProvider.GetRequiredService<ConfigurationFile>().Check();
+                await scope.ServiceProvider.GetRequiredService<DataQueryProvider>()
+                    .LoadAsync();
+            }
+            catch (BadConfigurationException e)
+            {
+                MessageBox.Show(e.Message, "Bad configuration file");
+                return false;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Error occur");
+                return false;
+            }
+
+            this._serviceScope?.Dispose();
+            this._serviceScope = scope;
+            return true;
         }
 
-        internal static IServiceProvider CreateFrom(ConfigurationFile config)
+        private static IServiceProvider CreateServiceProvider()
         {
             return new ServiceCollection()
                 .AddSingleton<IEncodingResolver, EncodingResolver>()
-                .AddSingleton<IDataSourceLoaderFactory, DataSourceLoaderFactory>()
-                .AddSingleton(config)
-                .AddSingleton<MainViewModel>()
-                .AddSingleton<DataQueryProvider>()
+                .AddScopedValue<ConfigurationFile>()
+                .AddScoped<IDataSourceLoaderFactory, DataSourceLoaderFactory>()
+                .AddScoped<MainViewModel>()
+                .AddScoped<DataQueryProvider>()
                 .AddTransient<DirectoryDataSourceLoader>()
                 .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<DirectoryDataSourceLoader>())
                 .AddTransient<CsvDataSourceLoader>()

@@ -7,7 +7,10 @@
         mc:Ignorable="d"
         Title="ListViewer"
         Height="450" 
-        Width="800">
+        Width="800" 
+        Drop="Window_Drop" 
+        AllowDrop="True"
+        >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />

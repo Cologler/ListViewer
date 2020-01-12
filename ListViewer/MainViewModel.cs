@@ -12,7 +12,6 @@ namespace ListViewer
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private readonly object _syncRoot = new object();
         private readonly IServiceProvider _serviceProvider;
         private CancellationTokenSource? _lastUpdateToken;
         private string _searchText = string.Empty;
@@ -36,6 +35,12 @@ namespace ListViewer
                     _ = this.UpdateItemsAsync(300);
                 }
             }
+        }
+
+        internal void Cancel()
+        {
+            this._lastUpdateToken?.Cancel();
+            this._lastUpdateToken?.Dispose();
         }
 
         public string CurrentStatus
@@ -67,12 +72,8 @@ namespace ListViewer
 
             var tokenSource = new CancellationTokenSource();
 
-            lock (this._syncRoot)
-            {
-                this._lastUpdateToken?.Cancel();
-                this._lastUpdateToken?.Dispose();
-                this._lastUpdateToken = tokenSource;
-            }
+            this.Cancel();
+            this._lastUpdateToken = tokenSource;
 
             var token = tokenSource.Token;
 
