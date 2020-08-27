@@ -17,7 +17,7 @@ You can add a json configuration
         {
             "ColumnName": "EFU File",
             "ColumnField": "FileName",
-            "IsContextField": true
+            "IsContextVariable": true
         },
         {
             "ColumnName": "Name",
