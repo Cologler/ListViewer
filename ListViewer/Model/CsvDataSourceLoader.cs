@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CsvHelper;
+using CsvHelper.Configuration;
+
 using ListViewer.Abstractions;
 using ListViewer.ConfiguresModel;
 using ListViewer.Model.Bases;
@@ -46,7 +49,7 @@ namespace ListViewer.Model
             var data = File.ReadAllText(this._filePath, this._encoding);
 
             var stringReader = new StringReader(data);
-            var reader = new CsvReader(stringReader);
+            var reader = new CsvReader(stringReader, CultureInfo.CurrentUICulture);
             var table = new CsvTable(reader, this.ContextVariables);
             return table;
         }
@@ -66,7 +69,7 @@ namespace ListViewer.Model
             }
 
             public IReadOnlyDictionary<string, int> HeaderIndexes => this._csvReader
-                .Context.NamedIndexes.ToDictionary(z => z.Key, z => z.Value[0]);
+                .HeaderRecord.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
 
             public IReadOnlyDictionary<string, string> ContextVariables => this._contextVariables;
 
@@ -89,7 +92,7 @@ namespace ListViewer.Model
             public string? GetColumnValue(int index) => this._csvReader.GetField(index);
 
             public string?[] GetColumnValues() =>
-                Enumerable.Range(0, this._csvReader.Context.HeaderRecord.Length)
+                Enumerable.Range(0, this._csvReader.HeaderRecord.Length)
                     .Select(z => this._csvReader.GetField(z))
                     .ToArray();
 
