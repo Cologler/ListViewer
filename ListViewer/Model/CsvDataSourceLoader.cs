@@ -64,12 +64,19 @@ namespace ListViewer.Model
                 this._csvReader = csvReader;
                 this._contextVariables = new Dictionary<string, string>(contextVariables);
 
-                csvReader.Read();
-                csvReader.ReadHeader();
+                if (csvReader.Read() && csvReader.ReadHeader())
+                {
+                    this.HeaderIndexes = csvReader
+                        .HeaderRecord!
+                        .Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
+                }
+                else
+                {
+                    this.HeaderIndexes = new Dictionary<string, int>();
+                } 
             }
 
-            public IReadOnlyDictionary<string, int> HeaderIndexes => this._csvReader
-                .HeaderRecord.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
+            public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
 
             public IReadOnlyDictionary<string, string> ContextVariables => this._contextVariables;
 
@@ -91,10 +98,7 @@ namespace ListViewer.Model
 
             public string? GetColumnValue(int index) => this._csvReader.GetField(index);
 
-            public string?[] GetColumnValues() =>
-                Enumerable.Range(0, this._csvReader.HeaderRecord.Length)
-                    .Select(z => this._csvReader.GetField(z))
-                    .ToArray();
+            public string?[] GetColumnValues() => this._csvReader.Parser.Record ?? Array.Empty<string>();
 
             public bool Read() => this._csvReader.Read();
         }
