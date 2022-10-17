@@ -12,7 +12,5 @@ namespace ListViewer.Abstractions
         ITableRowReader OpenReader();
 
         IReadOnlyDictionary<string, string> ContextVariables { get; }
-
-        ITable CreateCopy() => new InMemoryTable(this);
     }
 }

@@ -34,7 +34,7 @@ namespace ListViewer.Model.Bases
         public void LoadEntireTableToMemory()
         {
             using var table = this.ConnectTableCore();
-            this._cachedTable = table.CreateCopy();
+            this._cachedTable = new InMemoryTable(table);
         }
 
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken)
