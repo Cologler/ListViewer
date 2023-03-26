@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+
 using ListViewer.Abstractions;
 
 namespace ListViewer.Model
 {
     class InMemoryTable : ITable
     {
-        private readonly Dictionary<string, int> _headerIndexes = new Dictionary<string, int>();
-        private readonly Dictionary<string, string> _contextVariables = new Dictionary<string, string>();
         private readonly List<string?[]> _rowDatas = new List<string?[]>();
 
         public InMemoryTable(ITable table)
         {
-            this._headerIndexes = new Dictionary<string, int>(table.HeaderIndexes);
-            this._contextVariables = new Dictionary<string, string>(table.ContextVariables);
+            this.Headers = table.Headers;
+            this.HeaderIndexes = new Dictionary<string, int>(table.HeaderIndexes);
+            this.ContextVariables = new Dictionary<string, string>(table.ContextVariables);
 
             using (var reader = table.OpenReader())
             {
@@ -24,9 +26,11 @@ namespace ListViewer.Model
             }
         }
 
-        public IReadOnlyDictionary<string, int> HeaderIndexes => _headerIndexes;
+        public ImmutableArray<string> Headers { get; }
 
-        public IReadOnlyDictionary<string, string> ContextVariables => _contextVariables;
+        public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
+
+        public IReadOnlyDictionary<string, string> ContextVariables { get; }
 
         public void Dispose() { }
 

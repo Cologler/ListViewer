@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -66,15 +67,16 @@ namespace ListViewer.Model
 
                 if (csvReader.Read() && csvReader.ReadHeader())
                 {
-                    this.HeaderIndexes = csvReader
-                        .HeaderRecord!
-                        .Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
+                    this.Headers = csvReader.HeaderRecord?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
+                    this.HeaderIndexes = this.Headers.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
                 }
                 else
                 {
                     this.HeaderIndexes = new Dictionary<string, int>();
-                } 
+                }
             }
+
+            public ImmutableArray<string> Headers { get; }
 
             public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
 

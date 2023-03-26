@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using ListViewer.Abstractions;
@@ -72,19 +74,19 @@ namespace ListViewer.Model
         {
             private readonly SQLiteConnection _connection;
             private readonly SQLiteDataReader _reader;
-            private readonly Dictionary<string, int> _headerIndexes = new Dictionary<string, int>();
 
             public SQLiteTable(SQLiteConnection connection, SQLiteDataReader reader)
             {
                 this._connection = connection;
                 this._reader = reader;
-                foreach (var index in Enumerable.Range(0, reader.FieldCount))
-                {
-                    this._headerIndexes.Add(reader.GetName(index), index);
-                }
+
+                this.Headers = Enumerable.Range(0, reader.FieldCount).Select(i => reader.GetName(i)).ToImmutableArray();
+                this.HeaderIndexes = this.Headers.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
             }
 
-            public IReadOnlyDictionary<string, int> HeaderIndexes => this._headerIndexes;
+            public ImmutableArray<string> Headers { get; }
+
+            public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
 
             public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
 
