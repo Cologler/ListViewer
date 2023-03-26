@@ -82,8 +82,8 @@ namespace ListViewer
             try
             {
                 this.CurrentStatus = "searching...";
-                var rows = await this._serviceProvider.GetRequiredService<DataQueryProvider>()
-                    .QueryAsync(this._searchText.Trim(), token);
+                var query = this._serviceProvider.GetRequiredService<DataQueryProvider>();
+                var rows = await Task.Run(() => query.QueryAsync(this._searchText.Trim(), token), token);
                 this.Items.Clear();
                 this.CurrentStatus = $"finished at {(double)sw.ElapsedMilliseconds/1000}s";
 

@@ -48,7 +48,7 @@ namespace ListViewer.Model
 
         public async Task<IEnumerable<QueryRecordRow>> QueryAsync(string searchText, CancellationToken cancellationToken)
         {
-            await this.LoadAsync();
+            await this.LoadAsync().ConfigureAwait(false);
 
             var config = this._serviceProvider.GetRequiredService<ConfigurationFile>();
             if (config.Columns is null)
@@ -70,9 +70,7 @@ namespace ListViewer.Model
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return await Task.Run<IEnumerable<QueryRecordRow>>(
-                () => this.Query(queryContext, cancellationToken).ToArray(),
-                cancellationToken);
+            return this.Query(queryContext, cancellationToken);
         }
     }
 }
