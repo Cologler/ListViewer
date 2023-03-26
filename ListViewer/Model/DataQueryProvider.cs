@@ -50,8 +50,6 @@ namespace ListViewer.Model
         {
             await this.LoadAsync();
 
-            searchText = searchText.Trim();
-
             var config = this._serviceProvider.GetRequiredService<ConfigurationFile>();
             if (config.Columns is null)
                 return Enumerable.Empty<QueryRecordRow>();

@@ -63,7 +63,7 @@ namespace ListViewer
 
         private async Task UpdateItemsAsync(int delay)
         {
-            var searchText = this._searchText;
+            var searchText = this._searchText ?? string.Empty;
             if (delay > 0)
             {
                 await Task.Delay(delay);
@@ -83,7 +83,7 @@ namespace ListViewer
             {
                 this.CurrentStatus = "searching...";
                 var rows = await this._serviceProvider.GetRequiredService<DataQueryProvider>()
-                    .QueryAsync(this._searchText, token);
+                    .QueryAsync(this._searchText.Trim(), token);
                 this.Items.Clear();
                 this.CurrentStatus = $"finished at {(double)sw.ElapsedMilliseconds/1000}s";
 
