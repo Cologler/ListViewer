@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer
 {
-    public class MainViewModel : INotifyPropertyChanged
+    internal class MainViewModel : INotifyPropertyChanged
     {
         private readonly IServiceProvider _serviceProvider;
         private CancellationTokenSource? _lastUpdateToken;
@@ -19,9 +19,10 @@ namespace ListViewer
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public MainViewModel(IServiceProvider serviceProvider)
+        public MainViewModel(IServiceProvider serviceProvider, DataQueryProvider dataQueryProvider)
         {
             this._serviceProvider = serviceProvider;
+            this.DataQueryProvider = dataQueryProvider;
         }
 
         public string SearchText
@@ -82,8 +83,7 @@ namespace ListViewer
             try
             {
                 this.CurrentStatus = "searching...";
-                var query = this._serviceProvider.GetRequiredService<DataQueryProvider>();
-                var rows = await Task.Run(() => query.QueryAsync(this._searchText.Trim(), token), token);
+                var rows = await Task.Run(() => this.DataQueryProvider.QueryAsync(this._searchText.Trim(), token), token);
                 this.Items.Clear();
                 this.CurrentStatus = $"finished at {(double)sw.ElapsedMilliseconds/1000}s";
 
@@ -100,6 +100,8 @@ namespace ListViewer
         }
 
         public ObservableCollection<RowViewModel> Items { get; } = new ObservableCollection<RowViewModel>();
+
+        public DataQueryProvider DataQueryProvider { get; }
 
         public class RowViewModel
         {

@@ -54,5 +54,7 @@ namespace ListViewer.Model
                 }
             }
         }
+
+        ValueTask<IReadOnlyList<string>> IDataSourceLoader.GetHeadersAsync() => this.GetHeadersAsync();
     }
 }

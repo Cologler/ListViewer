@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -30,5 +31,13 @@ namespace ListViewer.Model
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken) =>
             this._subDataSourceLoaders.SelectMany(
                 z => z.Query(queryContext, cancellationToken));
+
+        protected async ValueTask<IReadOnlyList<string>> GetHeadersAsync()
+        {
+            return (await Task.WhenAll(this._subDataSourceLoaders.Select(x => x.GetHeadersAsync().AsTask())))
+                .SelectMany(x => x)
+                .Distinct()
+                .ToArray();
+        }
     }
 }

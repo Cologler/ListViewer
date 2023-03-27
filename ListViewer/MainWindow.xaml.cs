@@ -32,38 +32,37 @@ namespace ListViewer
             }
         }
 
-        private void OnServiceProviderChanged(IServiceProvider serviceProvider)
+        private async void OnServiceProviderChanged(IServiceProvider serviceProvider)
         {
             if (serviceProvider is null)
                 throw new ArgumentNullException(nameof(serviceProvider));
 
             (this.DataContext as MainViewModel)?.Cancel();
+            this.DataContext = null;
 
             var config = serviceProvider.GetRequiredService<ConfigurationFile>();
+            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
 
             this.Title = config.Title ?? "ListViewer";
 
-            this.GridView1.Columns.Clear();            
-            if (config.Columns != null)
-            {
-                var gvcs = config.GetDisplayColumns()
-                    .Select(z => z.ColumnName ?? z.ColumnField!)
-                    .Select((z, i) =>
-                    {
-                        return new GridViewColumn
-                        {
-                            Header = z,
-                            DisplayMemberBinding = new Binding($"[{i}]")
-                        };
-                    })
-                    .ToArray();
-                foreach (var gvc in gvcs)
+            this.GridView1.Columns.Clear();
+
+            await viewModel.DataQueryProvider.LoadAsync();
+            var gvcs = viewModel.DataQueryProvider.DisplayHeaders!
+                .Select((z, i) =>
                 {
-                    this.GridView1.Columns.Add(gvc);
-                }
+                    return new GridViewColumn
+                    {
+                        Header = z,
+                        DisplayMemberBinding = new Binding($"[{i}]")
+                    };
+                })
+                .ToArray();
+            foreach (var gvc in gvcs)
+            {
+                this.GridView1.Columns.Add(gvc);
             }
 
-            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
             this.DataContext = viewModel;
             _ = viewModel.LoadAsync();
         }

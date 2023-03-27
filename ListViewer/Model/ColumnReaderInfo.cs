@@ -1,15 +1,6 @@
 ﻿namespace ListViewer.Model
 {
-    struct ColumnReaderInfo
+    record struct ColumnReaderInfo(string Key, bool IsContextVariable)
     {
-        public ColumnReaderInfo(string key, bool isContextVariable)
-        {
-            this.Key = key;
-            this.IsContextVariable = isContextVariable;
-        }
-
-        public string Key { get; }
-
-        public bool IsContextVariable { get; }
     }
 }

@@ -13,6 +13,8 @@ namespace ListViewer.Model
     {
         private readonly object _syncRoot = new object();
         private Task? _loader;
+        private ColumnReaderInfo[]? _select;
+        private ColumnReaderInfo[]? _searchOn;
 
         public DataQueryProvider(IServiceProvider serviceProvider) : base(serviceProvider)
         {
@@ -23,12 +25,33 @@ namespace ListViewer.Model
             async Task InternalLoadAsync()
             {
                 var config = this._serviceProvider.GetRequiredService<ConfigurationFile>();
+
                 foreach (var dataSource in config.Sources ?? Enumerable.Empty<DataSource?>())
                 {
                     if (dataSource != null)
                     {
-                        await this.AddSubDataQuerySourceAsync(dataSource);
+                        await this.AddSubDataQuerySourceAsync(dataSource).ConfigureAwait(false);
                     }
+                }
+
+                if (config.Columns is null)
+                {
+                    this.DisplayHeaders = (await this.GetHeadersAsync().ConfigureAwait(false)).ToArray();
+                    this._searchOn = this._select = this.DisplayHeaders
+                        .Select(z => new ColumnReaderInfo(z, false))
+                        .ToArray();
+                }
+                else
+                {
+                    var columns = config.GetDisplayColumns();
+                    this.DisplayHeaders = columns.Select(x => x.ColumnName ?? x.ColumnField!).ToArray();
+                    this._select = columns
+                        .Select(x => new ColumnReaderInfo(x.ColumnField ?? x.ColumnName!, x.IsContextVariable))
+                        .ToArray();
+                    this._searchOn = config
+                        .GetSearchOnColumns()
+                        .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
+                        .ToArray();
                 }
             }
 
@@ -46,22 +69,14 @@ namespace ListViewer.Model
             return this._loader;
         }
 
+        public string[]? DisplayHeaders { get; private set; }
+
         public async Task<IEnumerable<QueryRecordRow>> QueryAsync(string searchText, CancellationToken cancellationToken)
         {
             await this.LoadAsync().ConfigureAwait(false);
 
-            var config = this._serviceProvider.GetRequiredService<ConfigurationFile>();
-            if (config.Columns is null)
-                return Enumerable.Empty<QueryRecordRow>();
-
-            var searchOn = config
-                .GetSearchOnColumns()
-                .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
-                .ToArray();
-            var select = config
-                 .GetDisplayColumns()
-                 .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
-                 .ToArray();
+            var searchOn = this._searchOn!;
+            var select = this._select!;
 
             if (select.Length == 0)
                 return Enumerable.Empty<QueryRecordRow>();

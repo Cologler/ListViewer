@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -35,6 +36,12 @@ namespace ListViewer.Model.Bases
         {
             using var table = this.ConnectTableCore();
             this._cachedTable = new InMemoryTable(table);
+        }
+
+        public ValueTask<IReadOnlyList<string>> GetHeadersAsync()
+        {
+            using var table = this.ConnectTableCore();
+            return new(table.Headers);
         }
 
         public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken)
