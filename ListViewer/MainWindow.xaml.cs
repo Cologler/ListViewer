@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ListViewer.ConfiguresModel;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace ListViewer
 {
@@ -37,17 +38,21 @@ namespace ListViewer
             if (serviceProvider is null)
                 throw new ArgumentNullException(nameof(serviceProvider));
 
-            (this.DataContext as MainViewModel)?.Cancel();
-            this.DataContext = null;
+            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
+
+            if (viewModel != this.DataContext)
+            {
+                (this.DataContext as MainViewModel)?.Cancel();
+                this.DataContext = null;
+            }
 
             var config = serviceProvider.GetRequiredService<ConfigurationFile>();
-            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
 
             this.Title = config.Title ?? "ListViewer";
 
             this.GridView1.Columns.Clear();
 
-            await viewModel.DataQueryProvider.LoadAsync();
+            await viewModel.DataQueryProvider.ReloadAsync();
             var gvcs = viewModel.DataQueryProvider.DisplayHeaders!
                 .Select((z, i) =>
                 {
@@ -79,6 +84,28 @@ namespace ListViewer
                         this.OnServiceProviderChanged(App.Current.ScopedServiceProvider!);
                     }
                 }
+            }
+        }
+
+        private void AddFilesMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Multiselect = true,
+                CheckFileExists = true,
+                Filter = "Data files (*.csv)|*.csv;*.efu"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                var cfgFile = App.Current.ScopedServiceProvider!.GetRequiredService<ConfigurationFile>();
+                cfgFile.Sources ??= new();
+                cfgFile.Sources.Add(new DataSource
+                {
+                    FilePath = dialog.FileName,
+                });
+
+                this.OnServiceProviderChanged(App.Current.ScopedServiceProvider!);
             }
         }
     }

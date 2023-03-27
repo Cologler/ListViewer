@@ -1,6 +1,6 @@
 ﻿namespace ListViewer.ConfiguresModel
 {
-    class Column
+    record Column
     {
         public string? ColumnName { get; set; }
 

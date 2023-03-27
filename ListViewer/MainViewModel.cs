@@ -83,9 +83,9 @@ namespace ListViewer
             try
             {
                 this.CurrentStatus = "searching...";
-                var rows = await Task.Run(() => this.DataQueryProvider.QueryAsync(this._searchText.Trim(), token), token);
+                var rows = (await Task.Run(() => this.DataQueryProvider.QueryAsync(this._searchText.Trim(), token), token)).ToArray();
                 this.Items.Clear();
-                this.CurrentStatus = $"finished at {(double)sw.ElapsedMilliseconds/1000}s";
+                this.CurrentStatus = $"found {rows.Length} rows, finished at {(double)sw.ElapsedMilliseconds/1000}s";
 
                 if (token.IsCancellationRequested) return;
                 foreach (var item in rows)

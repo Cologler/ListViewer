@@ -20,6 +20,12 @@ namespace ListViewer.Model
         {
         }
 
+        public Task ReloadAsync()
+        {
+            this._loader = null;
+            return this.LoadAsync();
+        }
+
         public Task LoadAsync()
         {
             async Task InternalLoadAsync()
@@ -43,13 +49,13 @@ namespace ListViewer.Model
                 }
                 else
                 {
-                    var columns = config.GetDisplayColumns();
+                    var columns = config.GetDisplayColumns()!;
                     this.DisplayHeaders = columns.Select(x => x.ColumnName ?? x.ColumnField!).ToArray();
                     this._select = columns
                         .Select(x => new ColumnReaderInfo(x.ColumnField ?? x.ColumnName!, x.IsContextVariable))
                         .ToArray();
                     this._searchOn = config
-                        .GetSearchOnColumns()
+                        .GetSearchOnColumns()!
                         .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
                         .ToArray();
                 }

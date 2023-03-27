@@ -13,11 +13,25 @@
         >
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+
+        <Grid>
+            <Menu Padding="2,0">
+                <MenuItem Header="Configuration"
+                          Margin="2">
+                    <MenuItem.Items>
+                        <MenuItem Header="Add files"
+                                  Click="AddFilesMenuItem_Click"/>
+                    </MenuItem.Items>
+                </MenuItem>
+            </Menu>
+        </Grid>
         
-        <Grid Margin="4">
+        <Grid Margin="4"
+              Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition />
@@ -47,7 +61,7 @@
             </ListView>
         </Grid>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <StatusBar>
                 <TextBlock x:Name="CurrentStatus"
                            Text="{Binding CurrentStatus}" />

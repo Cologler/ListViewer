@@ -6,11 +6,11 @@ using System.Windows.Documents;
 
 namespace ListViewer.ConfiguresModel
 {
-    class ConfigurationFile
+    record ConfigurationFile
     {
         public string? Title { get; set; }
 
-        public List<Column> Columns { get; set; } = default!;
+        public List<Column>? Columns { get; set; }
 
         public List<DataSource?>? Sources { get; set; }
 

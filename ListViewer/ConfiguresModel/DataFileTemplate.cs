@@ -2,7 +2,7 @@
 
 namespace ListViewer.ConfiguresModel
 {
-    class DataFileTemplate
+    record DataFileTemplate
     {
         public string? Provider { get; set; }
 

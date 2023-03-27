@@ -38,6 +38,9 @@ namespace ListViewer
             }
 
             this._appServiceProvider = CreateServiceProvider();
+
+            this.UseEmptyConfiguration();
+
             if (e.Args.Length == 1)
             {
                 _ = this.TryReadConfiguration(e.Args[0]);
@@ -45,7 +48,7 @@ namespace ListViewer
             else if (File.Exists(Constants.DefaultConfigFileName))
             {
                 _ = this.TryReadConfiguration(Constants.DefaultConfigFileName);
-            }            
+            }
             
             base.OnStartup(e);
         }
@@ -65,6 +68,15 @@ namespace ListViewer
         }
 
         public void OnException(BadConfigurationException e) => MessageBox.Show(e.Message, "Bad configuration file");
+
+        public void UseEmptyConfiguration()
+        {
+            this._serviceScope?.Dispose();
+            this._serviceScope = this._appServiceProvider.CreateScopeWithValues((typeof(ConfigurationFile), new ConfigurationFile
+            {
+
+            }));
+        }
 
         public async Task<bool> TryReadConfiguration(string filePath)
         {

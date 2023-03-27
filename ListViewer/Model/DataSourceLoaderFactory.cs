@@ -23,7 +23,20 @@ namespace ListViewer.Model
         {
             var providerName = dataSource.Provider;
             if (providerName is null)
+            {
+                if (dataSource.FilePath is { } path)
+                {
+                    if (path.EndsWith("csv", StringComparison.OrdinalIgnoreCase) || path.EndsWith("efu", StringComparison.OrdinalIgnoreCase))
+                    {
+                        providerName = DataProviderNames.Csv;
+                    }
+                }
+            }
+
+            if (providerName is null)
+            {
                 throw new BadConfigurationException("\"Provider\" cannot be null.");
+            }
 
             if (!this._typesMap.TryGetValue(providerName, out var type))
             {
