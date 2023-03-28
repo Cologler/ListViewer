@@ -38,12 +38,6 @@ namespace ListViewer.Model.Bases
             this._cachedTable = new InMemoryTable(table);
         }
 
-        public ValueTask<IReadOnlyList<string>> GetHeadersAsync()
-        {
-            using var table = this.ConnectTableCore();
-            return new(table.Headers);
-        }
-
         public ValueTask<IReadOnlyList<QueryRecords>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
         {
             using var table = this.ConnectTable();

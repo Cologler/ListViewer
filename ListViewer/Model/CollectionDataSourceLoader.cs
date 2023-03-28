@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    abstract class CollectionDataSourceLoader
+    class CollectionDataSourceLoader
     {
         private readonly List<IDataSourceLoader> _subDataSourceLoaders = new List<IDataSourceLoader>();
         protected readonly IServiceProvider _serviceProvider;
@@ -21,10 +21,10 @@ namespace ListViewer.Model
             this._serviceProvider = serviceProvider;
         }
 
-        protected async Task AddSubDataQuerySourceAsync(DataSource dataSource)
+        public async Task AddDataSourceAsync(DataSource dataSource)
         {
             var querySource = this._serviceProvider.GetRequiredService<IDataSourceLoaderFactory>().Create(dataSource);
-            await querySource.ConfigureAsync(dataSource);
+            await querySource.ConfigureAsync(dataSource).ConfigureAwait(false);
             this._subDataSourceLoaders.Add(querySource);
         }
 
@@ -32,14 +32,6 @@ namespace ListViewer.Model
         {
             return (await Task.WhenAll(this._subDataSourceLoaders.Select(x => x.QueryAsync(queryContext, cancellationToken).AsTask())))
                 .SelectMany(x => x)
-                .ToArray();
-        }
-
-        protected async ValueTask<IReadOnlyList<string>> GetHeadersAsync()
-        {
-            return (await Task.WhenAll(this._subDataSourceLoaders.Select(x => x.GetHeadersAsync().AsTask())))
-                .SelectMany(x => x)
-                .Distinct()
                 .ToArray();
         }
     }

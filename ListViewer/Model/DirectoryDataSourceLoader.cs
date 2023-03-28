@@ -9,11 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class DirectoryDataSourceLoader : CollectionDataSourceLoader, IDataSourceLoader
+    class DirectoryDataSourceLoader: IDataSourceLoader
     {
-        public DirectoryDataSourceLoader(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        private readonly CollectionDataSourceLoader _dataSourceLoader;
+
+        public DirectoryDataSourceLoader(CollectionDataSourceLoader dataSourceLoader)
         {
+            this._dataSourceLoader = dataSourceLoader;
         }
 
         public string ProviderName => DataProviderNames.Directory;
@@ -49,12 +51,13 @@ namespace ListViewer.Model
                 {
                     if (Path.GetExtension(path) is string ext && templates.TryGetValue(ext, out var value) && value is DataFileTemplate dft)
                     {
-                        await this.AddSubDataQuerySourceAsync(dft.CreateDataSource(path));
+                        await this._dataSourceLoader.AddDataSourceAsync(dft.CreateDataSource(path));
                     }
                 }
             }
         }
 
-        ValueTask<IReadOnlyList<string>> IDataSourceLoader.GetHeadersAsync() => this.GetHeadersAsync();
+        public ValueTask<IReadOnlyList<QueryRecords>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
+            => this._dataSourceLoader.QueryAsync(queryContext, cancellationToken);
     }
 }

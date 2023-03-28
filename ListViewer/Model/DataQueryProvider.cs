@@ -12,15 +12,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
 {
-    class DataQueryProvider : CollectionDataSourceLoader
+    class DataQueryProvider
     {
         private readonly object _syncRoot = new object();
+        private readonly IServiceProvider _serviceProvider;
+        private readonly CollectionDataSourceLoader _dataSourceLoader;
         private Task? _loader;
-        private ColumnReaderInfo[]? _select;
-        private ColumnReaderInfo[]? _searchOn;
 
-        public DataQueryProvider(IServiceProvider serviceProvider) : base(serviceProvider)
+        public DataQueryProvider(IServiceProvider serviceProvider, CollectionDataSourceLoader dataSourceLoader)
         {
+            this._serviceProvider = serviceProvider;
+            this._dataSourceLoader = dataSourceLoader;
         }
 
         public Task ReloadAsync()
@@ -39,25 +41,8 @@ namespace ListViewer.Model
                 {
                     if (dataSource != null)
                     {
-                        await this.AddSubDataQuerySourceAsync(dataSource).ConfigureAwait(false);
+                        await this._dataSourceLoader.AddDataSourceAsync(dataSource).ConfigureAwait(false);
                     }
-                }
-
-                if (config.Columns is null)
-                {
-                }
-                else
-                {
-                    this._select = config.GetDisplayColumns()?
-                        .Select(x => new ColumnReaderInfo(x.ColumnField ?? x.ColumnName!, x.IsContextVariable)
-                        {
-                            DisplayName = x.ColumnName ?? x.ColumnField!
-                        })
-                        .ToArray();
-                    this._searchOn = config
-                        .GetSearchOnColumns()?
-                        .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
-                        .ToArray();
                 }
             }
 
@@ -103,7 +88,7 @@ namespace ListViewer.Model
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var allRecords = await this.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
+            var allRecords = await this._dataSourceLoader.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
 
             var headers = allRecords.SelectMany(x => x.Headers)
                     .Distinct()

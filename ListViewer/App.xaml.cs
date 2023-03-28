@@ -149,6 +149,7 @@ namespace ListViewer
                 .AddScoped<MainViewModel>()
                 .AddScoped<DataQueryProvider>()
                 .AddTransient<DirectoryDataSourceLoader>()
+                .AddTransient<CollectionDataSourceLoader>()
                 .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<DirectoryDataSourceLoader>())
                 .AddTransient<CsvDataSourceLoader>()
                 .AddTransient<IDataSourceLoader>(p => p.GetRequiredService<CsvDataSourceLoader>())
