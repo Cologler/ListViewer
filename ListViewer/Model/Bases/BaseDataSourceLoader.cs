@@ -44,36 +44,39 @@ namespace ListViewer.Model.Bases
             return new(table.Headers);
         }
 
-        public ValueTask<IReadOnlyList<QueryRecordRow>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
+        public ValueTask<IReadOnlyList<QueryRecords>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
         {
+            using var table = this.ConnectTable();
+
+            var selectColumns = queryContext.SelectColumns;
+            var headers = selectColumns?.Select(x => x.DisplayName!).ToImmutableArray() ?? table.Headers;
+
             IEnumerable<QueryRecordRow> Query()
             {
-                using (var table = this.ConnectTable())
+                var selectReaders = (selectColumns is null
+                    ? ColumnValueReader.CreateReaders(table) : ColumnValueReader.CreateReaders(table, selectColumns, this.FieldsMapper)).ToArray();
+
+                using var reader = table.OpenReader();
+
+                var recordValuesReader = queryContext.IsSearchOnAllFields
+                    ? new TableRowEntireValuesSelector() as ITableRowValuesSelector
+                    : new TableRowValuesSelector(
+                        ColumnValueReader.CreateReaders(
+                            table, queryContext.SearchOnColumns!, this.FieldsMapper)
+                        .ToArray());
+                var recordFilter = queryContext.RecordFilter;
+
+                while (reader.Read())
                 {
-                    using var reader = table.OpenReader();
-                    var selectReaders = ColumnValueReader.CreateReaders(table, queryContext.SelectColumns, this.FieldsMapper)
-                        .ToArray();
-
-                    var recordValuesReader = queryContext.SearchOnAll
-                        ? new TableRowEntireValuesSelector() as ITableRowValuesSelector
-                        : new TableRowValuesSelector(
-                            ColumnValueReader.CreateReaders(
-                                table, queryContext.SearchOnColumns, this.FieldsMapper)
-                            .ToArray());
-                    var recordFilter = queryContext.RecordFilter;
-
-                    while (reader.Read())
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (recordFilter.IsMatch(reader, recordValuesReader))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (recordFilter.IsMatch(reader, recordValuesReader))
-                        {
-                            yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
-                        }
+                        yield return new QueryRecordRow(selectReaders.Select(z => z.ReadValue(reader)).ToArray());
                     }
                 }
             }
 
-            return new(Query().ToArray());
+            return new(new[] { new QueryRecords(headers, Query().ToArray()) });
         }
     }
 }

@@ -4,6 +4,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Data;
+
 using ListViewer.ConfiguresModel;
 using ListViewer.Model;
 using Microsoft.Extensions.DependencyInjection;
@@ -83,12 +86,29 @@ namespace ListViewer
             try
             {
                 this.CurrentStatus = "searching...";
-                var rows = (await Task.Run(() => this.DataQueryProvider.QueryAsync(this._searchText.Trim(), token), token));
+                var records = (await Task.Run(() => this.DataQueryProvider.QueryAsync(this._searchText.Trim(), token), token));
                 this.Items.Clear();
-                this.CurrentStatus = $"found {rows.Count} rows, finished at {(double)sw.ElapsedMilliseconds/1000}s";
+                this.CurrentStatus = $"found {records.Rows.Count} rows, finished at {(double)sw.ElapsedMilliseconds/1000}s";
 
                 if (token.IsCancellationRequested) return;
-                foreach (var item in rows)
+
+                var viewColumns = this.GridViewColumns!;
+                viewColumns.Clear();
+                var columns = records.Headers
+                    .Select((z, i) =>
+                    {
+                        return new GridViewColumn
+                        {
+                            Header = z,
+                            DisplayMemberBinding = new Binding($"[{i}]")
+                        };
+                    });
+                foreach (var column in columns)
+                {
+                    viewColumns.Add(column);
+                }
+
+                foreach (var item in records.Rows)
                 {
                     this.Items.Add(new RowViewModel(item));
                 }
@@ -102,6 +122,8 @@ namespace ListViewer
         public ObservableCollection<RowViewModel> Items { get; } = new ObservableCollection<RowViewModel>();
 
         public DataQueryProvider DataQueryProvider { get; }
+
+        public GridViewColumnCollection? GridViewColumns { get; set; }
 
         public class RowViewModel
         {

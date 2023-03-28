@@ -28,7 +28,7 @@ namespace ListViewer.Model
             this._subDataSourceLoaders.Add(querySource);
         }
 
-        public async ValueTask<IReadOnlyList<QueryRecordRow>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyList<QueryRecords>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
         {
             return (await Task.WhenAll(this._subDataSourceLoaders.Select(x => x.QueryAsync(queryContext, cancellationToken).AsTask())))
                 .SelectMany(x => x)

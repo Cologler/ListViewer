@@ -38,35 +38,21 @@ namespace ListViewer
             if (serviceProvider is null)
                 throw new ArgumentNullException(nameof(serviceProvider));
 
-            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
+            this.GridView1.Columns.Clear();
 
+            var viewModel = serviceProvider.GetRequiredService<MainViewModel>();
             if (viewModel != this.DataContext)
             {
                 (this.DataContext as MainViewModel)?.Cancel();
                 this.DataContext = null;
             }
 
-            var config = serviceProvider.GetRequiredService<ConfigurationFile>();
+            viewModel.GridViewColumns = this.GridView1.Columns;
 
+            var config = serviceProvider.GetRequiredService<ConfigurationFile>();
             this.Title = config.Title ?? "ListViewer";
 
-            this.GridView1.Columns.Clear();
-
-            await viewModel.DataQueryProvider.ReloadAsync();
-            var gvcs = viewModel.DataQueryProvider.DisplayHeaders!
-                .Select((z, i) =>
-                {
-                    return new GridViewColumn
-                    {
-                        Header = z,
-                        DisplayMemberBinding = new Binding($"[{i}]")
-                    };
-                })
-                .ToArray();
-            foreach (var gvc in gvcs)
-            {
-                this.GridView1.Columns.Add(gvc);
-            }
+            _ = viewModel.DataQueryProvider.ReloadAsync();
 
             this.DataContext = viewModel;
             _ = viewModel.LoadAsync();

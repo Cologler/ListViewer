@@ -10,6 +10,9 @@ namespace ListViewer.Model
 
         public virtual string ReadValue(ITableRowReader reader) => this.TryReadValue(reader) ?? string.Empty;
 
+        public static IEnumerable<ColumnValueReader> CreateReaders(ITable table) 
+            => Enumerable.Range(0, table.Headers.Length).Select(FromIndex);
+
         public static IEnumerable<ColumnValueReader> CreateReaders(ITable table,
             IEnumerable<ColumnReaderInfo> readerInfos, FieldsMapper fieldsMapper)
         {

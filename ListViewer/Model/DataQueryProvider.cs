@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ListViewer.Abstractions;
 using ListViewer.ConfiguresModel;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ListViewer.Model
@@ -42,20 +45,17 @@ namespace ListViewer.Model
 
                 if (config.Columns is null)
                 {
-                    this.DisplayHeaders = (await this.GetHeadersAsync().ConfigureAwait(false)).ToArray();
-                    this._searchOn = this._select = this.DisplayHeaders
-                        .Select(z => new ColumnReaderInfo(z, false))
-                        .ToArray();
                 }
                 else
                 {
-                    var columns = config.GetDisplayColumns()!;
-                    this.DisplayHeaders = columns.Select(x => x.ColumnName ?? x.ColumnField!).ToArray();
-                    this._select = columns
-                        .Select(x => new ColumnReaderInfo(x.ColumnField ?? x.ColumnName!, x.IsContextVariable))
+                    this._select = config.GetDisplayColumns()?
+                        .Select(x => new ColumnReaderInfo(x.ColumnField ?? x.ColumnName!, x.IsContextVariable)
+                        {
+                            DisplayName = x.ColumnName ?? x.ColumnField!
+                        })
                         .ToArray();
                     this._searchOn = config
-                        .GetSearchOnColumns()!
+                        .GetSearchOnColumns()?
                         .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
                         .ToArray();
                 }
@@ -75,23 +75,57 @@ namespace ListViewer.Model
             return this._loader;
         }
 
-        public string[]? DisplayHeaders { get; private set; }
-
-        public async Task<IReadOnlyList<QueryRecordRow>> QueryAsync(string searchText, CancellationToken cancellationToken)
+        public async Task<QueryRecords> QueryAsync(string searchText, CancellationToken cancellationToken)
         {
             await this.LoadAsync().ConfigureAwait(false);
 
-            var searchOn = this._searchOn!;
-            var select = this._select!;
+            var config = this._serviceProvider.GetRequiredService<ConfigurationFile>();
 
-            if (select.Length == 0)
-                return Array.Empty<QueryRecordRow>();
+            var searchOn = config
+                .GetSearchOnColumns()?
+                .Select(z => new ColumnReaderInfo(z.ColumnField ?? z.ColumnName!, z.IsContextVariable))
+                .ToArray();
+            var select = config.GetDisplayColumns()?
+                .Select(x => new ColumnReaderInfo(x.ColumnField ?? x.ColumnName!, x.IsContextVariable)
+                {
+                    DisplayName = x.ColumnName ?? x.ColumnField!
+                })
+                .ToArray();
 
-            var queryContext = new QueryContext(searchText, searchOn, select);
+            if (select?.Length == 0)
+                return new QueryRecords(ImmutableArray<string>.Empty, Array.Empty<QueryRecordRow>());
+
+            var queryContext = new QueryContext(searchText)
+            {
+                SearchOnColumns = searchOn,
+                SelectColumns = select
+            };
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return await this.QueryAsync(queryContext, cancellationToken);
+            var allRecords = await this.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
+
+            var headers = allRecords.SelectMany(x => x.Headers)
+                    .Distinct()
+                    .ToImmutableArray();
+
+            var headersMap = headers
+                .Select((x, i) => (Value: x, Index: i))
+                .ToDictionary(x => x.Value, x => x.Index);
+
+            var allRows = allRecords.Select(x =>
+            {
+                var headerMap = x.Headers.Select(z => headersMap[z]).ToArray();
+                return x.Rows.Select(r =>
+                {
+                    var rows = new string[headers.Length];
+                    Array.Fill(rows, string.Empty);
+                    _ = r.ColumnValues.Select((z, i) => rows[headerMap[i]] = z).ToArray();
+                    return new QueryRecordRow(rows);
+                });
+            }).SelectMany(x => x).ToArray();
+
+            return new QueryRecords(headers, allRows);
         }
     }
 }

@@ -7,11 +7,8 @@ namespace ListViewer.Model
 {
     class QueryContext
     {
-        public QueryContext(string searchText, IReadOnlyCollection<ColumnReaderInfo> searchOn, IReadOnlyCollection<ColumnReaderInfo> select)
+        public QueryContext(string searchText)
         {
-            this.SearchOnColumns = searchOn;
-            this.SelectColumns = select;
-
             if (string.IsNullOrEmpty(searchText))
             {
                 this.RecordFilter = new EmptyRecordFilter();
@@ -22,11 +19,11 @@ namespace ListViewer.Model
             }
         }
 
-        public IReadOnlyCollection<ColumnReaderInfo> SearchOnColumns { get;  }
+        public IReadOnlyCollection<ColumnReaderInfo>? SearchOnColumns { get; init; }
 
-        public IReadOnlyCollection<ColumnReaderInfo> SelectColumns { get; }
+        public IReadOnlyCollection<ColumnReaderInfo>? SelectColumns { get; init; }
 
-        public bool SearchOnAll => this.SearchOnColumns.Count == 0;
+        public bool IsSearchOnAllFields => this.SearchOnColumns is null || this.SearchOnColumns.Count == 0;
 
         public IRecordFilter RecordFilter { get; }
     }
