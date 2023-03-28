@@ -134,7 +134,7 @@ namespace ListViewer
                 this._row = row;
             }
 
-            public string this[int index] => this._row.ColumnValues[index];
+            public string this[int index] => this._row.GetColumnValue(index);
         }
     }
 }

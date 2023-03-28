@@ -115,14 +115,13 @@ namespace ListViewer.Model
 
             var allRows = allRecords.Select(x =>
             {
+                var columnsMapping = x.Headers.Select((z, i) => (i, headersMap[z])).ToArray();
                 var headerMap = x.Headers.Select(z => headersMap[z]).ToArray();
-                return x.Rows.Select(r =>
+                foreach (var row in x.Rows)
                 {
-                    var rows = new string[headers.Length];
-                    Array.Fill(rows, string.Empty);
-                    _ = r.ColumnValues.Select((z, i) => rows[headerMap[i]] = z).ToArray();
-                    return new QueryRecordRow(rows);
-                });
+                    row.ColumnMapping = columnsMapping;
+                }
+                return x.Rows;
             }).SelectMany(x => x).ToArray();
 
             return new QueryRecords(headers, allRows);
