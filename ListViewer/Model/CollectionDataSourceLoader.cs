@@ -28,9 +28,12 @@ namespace ListViewer.Model
             this._subDataSourceLoaders.Add(querySource);
         }
 
-        public IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken) =>
-            this._subDataSourceLoaders.SelectMany(
-                z => z.Query(queryContext, cancellationToken));
+        public async ValueTask<IReadOnlyList<QueryRecordRow>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
+        {
+            return (await Task.WhenAll(this._subDataSourceLoaders.Select(x => x.QueryAsync(queryContext, cancellationToken).AsTask())))
+                .SelectMany(x => x)
+                .ToArray();
+        }
 
         protected async ValueTask<IReadOnlyList<string>> GetHeadersAsync()
         {

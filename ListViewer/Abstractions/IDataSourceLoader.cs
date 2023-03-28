@@ -16,6 +16,6 @@ namespace ListViewer.Abstractions
 
         ValueTask<IReadOnlyList<string>> GetHeadersAsync();
 
-        IEnumerable<QueryRecordRow> Query(QueryContext queryContext, CancellationToken cancellationToken);
+        ValueTask<IReadOnlyList<QueryRecordRow>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken);
     }
 }

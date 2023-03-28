@@ -77,7 +77,7 @@ namespace ListViewer.Model
 
         public string[]? DisplayHeaders { get; private set; }
 
-        public async Task<IEnumerable<QueryRecordRow>> QueryAsync(string searchText, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<QueryRecordRow>> QueryAsync(string searchText, CancellationToken cancellationToken)
         {
             await this.LoadAsync().ConfigureAwait(false);
 
@@ -85,13 +85,13 @@ namespace ListViewer.Model
             var select = this._select!;
 
             if (select.Length == 0)
-                return Enumerable.Empty<QueryRecordRow>();
+                return Array.Empty<QueryRecordRow>();
 
             var queryContext = new QueryContext(searchText, searchOn, select);
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return this.Query(queryContext, cancellationToken);
+            return await this.QueryAsync(queryContext, cancellationToken);
         }
     }
 }
