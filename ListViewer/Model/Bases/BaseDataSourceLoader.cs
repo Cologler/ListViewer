@@ -51,14 +51,14 @@ namespace ListViewer.Model.Bases
                 using (var table = this.ConnectTable())
                 {
                     using var reader = table.OpenReader();
-                    var selectReaders = ColumnValueReader.CreateReaders(table, reader, queryContext.SelectColumns, this.FieldsMapper)
+                    var selectReaders = ColumnValueReader.CreateReaders(table, queryContext.SelectColumns, this.FieldsMapper)
                         .ToArray();
 
                     var recordValuesReader = queryContext.SearchOnAll
                         ? new TableRowEntireValuesSelector() as ITableRowValuesSelector
                         : new TableRowValuesSelector(
                             ColumnValueReader.CreateReaders(
-                                table, reader, queryContext.SearchOnColumns, this.FieldsMapper)
+                                table, queryContext.SearchOnColumns, this.FieldsMapper)
                             .ToArray());
                     var recordFilter = queryContext.RecordFilter;
 

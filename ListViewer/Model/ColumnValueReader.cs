@@ -10,7 +10,7 @@ namespace ListViewer.Model
 
         public virtual string ReadValue(ITableRowReader reader) => this.TryReadValue(reader) ?? string.Empty;
 
-        public static IEnumerable<ColumnValueReader> CreateReaders(ITable table, ITableRowReader tableRowReader,
+        public static IEnumerable<ColumnValueReader> CreateReaders(ITable table,
             IEnumerable<ColumnReaderInfo> readerInfos, FieldsMapper fieldsMapper)
         {
             foreach (var readerInfo in readerInfos)
@@ -21,8 +21,7 @@ namespace ListViewer.Model
                 }
                 else
                 {
-                    yield return FromIndex(tableRowReader,
-                        table.HeaderIndexes.GetValueOrDefault(fieldsMapper.Get(readerInfo.Key), -1));
+                    yield return FromIndex(table.HeaderIndexes.GetValueOrDefault(fieldsMapper.Get(readerInfo.Key), -1));
                 }
             }
         }
@@ -41,22 +40,15 @@ namespace ListViewer.Model
             public override string? TryReadValue(ITableRowReader reader) => this._value;
         }
 
-        public static ColumnValueReader FromIndex(ITableRowReader tableRowReader, int index) => index < 0
-            ? FromValue(null)
-            : new GetIndexValueReader(tableRowReader, index);
+        public static ColumnValueReader FromIndex(int index) => index < 0 ? FromValue(null) : new GetIndexValueReader(index);
 
         class GetIndexValueReader : ColumnValueReader
         {
-            private readonly ITableRowReader _tableRowReader;
             private readonly int _index;
 
-            public GetIndexValueReader(ITableRowReader tableRowReader, int index)
-            {
-                this._tableRowReader = tableRowReader;
-                this._index = index;
-            }
+            public GetIndexValueReader(int index) => this._index = index;
 
-            public override string? TryReadValue(ITableRowReader reader) => this._tableRowReader.GetColumnValue(this._index);
+            public override string? TryReadValue(ITableRowReader reader) => reader.GetColumnValue(this._index);
         }
     }
 }
