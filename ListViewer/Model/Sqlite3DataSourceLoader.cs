@@ -81,12 +81,9 @@ namespace ListViewer.Model
                 this._reader = reader;
 
                 this.Headers = Enumerable.Range(0, reader.FieldCount).Select(i => reader.GetName(i)).ToImmutableArray();
-                this.HeaderIndexes = this.Headers.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
             }
 
             public ImmutableArray<string> Headers { get; }
-
-            public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
 
             public Dictionary<string, string> ContextFields { get; } = new Dictionary<string, string>();
 

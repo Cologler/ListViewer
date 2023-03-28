@@ -10,8 +10,6 @@ namespace ListViewer.Abstractions
     {
         ImmutableArray<string> Headers { get; }
 
-        IReadOnlyDictionary<string, int> HeaderIndexes { get; }
-
         ITableRowReader OpenReader();
 
         IReadOnlyDictionary<string, string> ContextVariables { get; }

@@ -14,8 +14,6 @@ namespace ListViewer.Model
         public InMemoryTable(ITable table)
         {
             this.Headers = table.Headers;
-            this.HeaderIndexes = new Dictionary<string, int>(table.HeaderIndexes);
-            this.ContextVariables = new Dictionary<string, string>(table.ContextVariables);
 
             using (var reader = table.OpenReader())
             {
@@ -27,8 +25,6 @@ namespace ListViewer.Model
         }
 
         public ImmutableArray<string> Headers { get; }
-
-        public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
 
         public IReadOnlyDictionary<string, string> ContextVariables { get; }
 

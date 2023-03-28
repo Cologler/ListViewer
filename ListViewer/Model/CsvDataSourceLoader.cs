@@ -68,17 +68,14 @@ namespace ListViewer.Model
                 if (csvReader.Read() && csvReader.ReadHeader())
                 {
                     this.Headers = csvReader.HeaderRecord?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
-                    this.HeaderIndexes = this.Headers.Select((x, i) => (x, i)).ToDictionary(x => x.x, x => x.i);
                 }
                 else
                 {
-                    this.HeaderIndexes = new Dictionary<string, int>();
+                    this.Headers = ImmutableArray<string>.Empty;
                 }
             }
 
             public ImmutableArray<string> Headers { get; }
-
-            public IReadOnlyDictionary<string, int> HeaderIndexes { get; }
 
             public IReadOnlyDictionary<string, string> ContextVariables => this._contextVariables;
 

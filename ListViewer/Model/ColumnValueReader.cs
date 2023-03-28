@@ -21,7 +21,7 @@ namespace ListViewer.Model
                 }
                 else
                 {
-                    yield return FromIndex(table.HeaderIndexes.GetValueOrDefault(fieldsMapper.Get(readerInfo.Key), -1));
+                    yield return FromIndex(table.Headers.IndexOf(fieldsMapper.Get(readerInfo.Key)));
                 }
             }
         }
