@@ -9,19 +9,15 @@
 
         public string[] ColumnValues { get; }
 
-        public (int, int)[]? ColumnMapping { get; set; }
+        public IReadOnlyDictionary<int, int>? ColumnMapping { get; set; }
 
         public string GetColumnValue(int index)
         {
             if (this.ColumnMapping is not null)
             {
-                foreach (var (idx, mapTo) in this.ColumnMapping)
-                {
-                    if (mapTo == index)
-                    {
-                        return this.ColumnValues[idx];
-                    }
-                }
+                return this.ColumnMapping.TryGetValue(index, out var realIndex)
+                    ? this.ColumnValues[realIndex]
+                    : string.Empty;
             }
             else
             {
@@ -29,9 +25,9 @@
                 {
                     return this.ColumnValues[index];
                 }
-            }
 
-            return string.Empty;
+                return string.Empty;
+            }
         }
     }
 }

@@ -99,7 +99,7 @@ namespace ListViewer
                     {
                         return new GridViewColumn
                         {
-                            Header = z,
+                            Header = z.Name,
                             DisplayMemberBinding = new Binding($"[{i}]")
                         };
                     });

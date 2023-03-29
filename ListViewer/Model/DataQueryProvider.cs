@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -60,7 +61,7 @@ namespace ListViewer.Model
             return this._loader;
         }
 
-        public async Task<QueryRecords> QueryAsync(string searchText, CancellationToken cancellationToken)
+        public async Task<QueryResult> QueryAsync(string searchText, CancellationToken cancellationToken)
         {
             await this.LoadAsync().ConfigureAwait(false);
 
@@ -78,7 +79,7 @@ namespace ListViewer.Model
                 .ToArray();
 
             if (select?.Length == 0)
-                return new QueryRecords(ImmutableArray<string>.Empty, Array.Empty<QueryRecordRow>());
+                return new QueryResult(Array.Empty<QueryRecordHeader>(), Array.Empty<QueryRecordRow>());
 
             var queryContext = new QueryContext(searchText)
             {
@@ -96,34 +97,32 @@ namespace ListViewer.Model
                 var headers = x.Headers.Select(z =>
                 {
                     var no = noTable[z] = 1 + noTable.GetValueOrDefault(z);
-                    return (Header: z, No: no - 1); // start from 0
+                    return new QueryRecordHeader(z) { No = no - 1 }; // start from 0
                 }).ToArray();
 
-                return (Records: x, HeadersWithNo: headers);
+                return (x.Rows, Headers: headers);
             }).ToArray();
 
             var headers = allRecordsWithNoHeaders
-                .SelectMany(x => x.HeadersWithNo)
+                .SelectMany(x => x.Headers)
                 .Distinct()
                 .ToArray();
 
-            var headersMap = allRecordsWithNoHeaders
-                .SelectMany(x => x.HeadersWithNo)
-                .Distinct()
+            var headersMap = headers
                 .Select((x, i) => (Value: x, Index: i))
                 .ToDictionary(x => x.Value, x => x.Index);
 
             var allRows = allRecordsWithNoHeaders.SelectMany(x =>
+            {
+                var columnsMapping = new Dictionary<int, int>(x.Headers.Select((z, i) => KeyValuePair.Create(headersMap[z], i))).AsReadOnly();
+                foreach (var row in x.Rows)
                 {
-                    var columnsMapping = x.HeadersWithNo.Select((z, i) => (i, headersMap[z])).ToArray();
-                    foreach (var row in x.Records.Rows)
-                    {
-                        row.ColumnMapping = columnsMapping;
-                    }
-                    return x.Records.Rows;
-                }).ToArray();
+                    row.ColumnMapping = columnsMapping;
+                }
+                return x.Rows;
+            }).ToArray();
 
-            return new QueryRecords(headers.Select(x => x.Header).ToImmutableArray(), allRows);
+            return new QueryResult(headers, allRows);
         }
     }
 }
