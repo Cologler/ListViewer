@@ -90,26 +90,40 @@ namespace ListViewer.Model
 
             var allRecords = await this._dataSourceLoader.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
 
-            var headers = allRecords.SelectMany(x => x.Headers)
-                    .Distinct()
-                    .ToImmutableArray();
+            var allRecordsWithNoHeaders = allRecords.Select(x =>
+            {
+                var noTable = new Dictionary<string, int>();
+                var headers = x.Headers.Select(z =>
+                {
+                    var no = noTable[z] = 1 + noTable.GetValueOrDefault(z);
+                    return (Header: z, No: no - 1); // start from 0
+                }).ToArray();
 
-            var headersMap = headers
+                return (Records: x, HeadersWithNo: headers);
+            }).ToArray();
+
+            var headers = allRecordsWithNoHeaders
+                .SelectMany(x => x.HeadersWithNo)
+                .Distinct()
+                .ToArray();
+
+            var headersMap = allRecordsWithNoHeaders
+                .SelectMany(x => x.HeadersWithNo)
+                .Distinct()
                 .Select((x, i) => (Value: x, Index: i))
                 .ToDictionary(x => x.Value, x => x.Index);
 
-            var allRows = allRecords.Select(x =>
-            {
-                var columnsMapping = x.Headers.Select((z, i) => (i, headersMap[z])).ToArray();
-                var headerMap = x.Headers.Select(z => headersMap[z]).ToArray();
-                foreach (var row in x.Rows)
+            var allRows = allRecordsWithNoHeaders.SelectMany(x =>
                 {
-                    row.ColumnMapping = columnsMapping;
-                }
-                return x.Rows;
-            }).SelectMany(x => x).ToArray();
+                    var columnsMapping = x.HeadersWithNo.Select((z, i) => (i, headersMap[z])).ToArray();
+                    foreach (var row in x.Records.Rows)
+                    {
+                        row.ColumnMapping = columnsMapping;
+                    }
+                    return x.Records.Rows;
+                }).ToArray();
 
-            return new QueryRecords(headers, allRows);
+            return new QueryRecords(headers.Select(x => x.Header).ToImmutableArray(), allRows);
         }
     }
 }
