@@ -38,6 +38,7 @@ namespace ListViewer.Model
             {
                 var config = this._serviceProvider.GetRequiredService<ConfigurationFile>();
 
+                this._dataSourceLoader.Reset();
                 foreach (var dataSource in config.Sources ?? Enumerable.Empty<DataSource?>())
                 {
                     if (dataSource != null)
@@ -89,9 +90,9 @@ namespace ListViewer.Model
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var allRecords = await this._dataSourceLoader.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
+            var records = await this._dataSourceLoader.QueryAsync(queryContext, cancellationToken).ConfigureAwait(false);
 
-            var allRecordsWithNoHeaders = allRecords.Select(x =>
+            var recordsWithHeaders = records.Select(x =>
             {
                 var noTable = new Dictionary<string, int>();
                 var headers = x.Headers.Select(z =>
@@ -103,7 +104,7 @@ namespace ListViewer.Model
                 return (x.Rows, Headers: headers);
             }).ToArray();
 
-            var headers = allRecordsWithNoHeaders
+            var headers = recordsWithHeaders
                 .SelectMany(x => x.Headers)
                 .Distinct()
                 .ToArray();
@@ -112,7 +113,7 @@ namespace ListViewer.Model
                 .Select((x, i) => (Value: x, Index: i))
                 .ToDictionary(x => x.Value, x => x.Index);
 
-            var allRows = allRecordsWithNoHeaders.SelectMany(x =>
+            var rows = recordsWithHeaders.SelectMany(x =>
             {
                 var columnsMapping = new Dictionary<int, int>(x.Headers.Select((z, i) => KeyValuePair.Create(headersMap[z], i))).AsReadOnly();
                 foreach (var row in x.Rows)
@@ -122,7 +123,7 @@ namespace ListViewer.Model
                 return x.Rows;
             }).ToArray();
 
-            return new QueryResult(headers, allRows);
+            return new QueryResult(headers, rows);
         }
     }
 }

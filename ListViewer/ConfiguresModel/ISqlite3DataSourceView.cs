@@ -6,9 +6,15 @@
 
         string? Table { get; }
 
-        string GetConnectionString() => this.ConnectionString
-            ?? throw new BadConfigurationException("Cannot load data from a null ConnectionString.");
+        string GetConnectionString()
+        {
+            if (this.ConnectionString is not null)
+                return this.ConnectionString;
 
-        string GetTable() => this.Table ?? throw new BadConfigurationException("Cannot load data from a null Table.");
+            if ((this as DataSource)?.FilePath is { } path)
+                return $"Data Source={path}";
+            
+            throw new BadConfigurationException("Cannot load data from a null ConnectionString.");
+        }
     }
 }

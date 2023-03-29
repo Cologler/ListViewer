@@ -45,14 +45,14 @@ namespace ListViewer.Model
             return base.ConfigureAsync(dataSource);
         }
 
-        protected override ITable ConnectTableCore()
+        protected override IOpenedTables ConnectTablesCore()
         {
             var data = File.ReadAllText(this._filePath, this._encoding);
 
             var stringReader = new StringReader(data);
             var reader = new CsvReader(stringReader, CultureInfo.CurrentUICulture);
             var table = new CsvTable(reader, this.ContextVariables);
-            return table;
+            return new OpenedTables(table);
         }
 
         class CsvTable : ITable

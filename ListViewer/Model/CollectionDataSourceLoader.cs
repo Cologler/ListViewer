@@ -21,6 +21,8 @@ namespace ListViewer.Model
             this._serviceProvider = serviceProvider;
         }
 
+        public void Reset() => this._subDataSourceLoaders.Clear();
+
         public async Task AddDataSourceAsync(DataSource dataSource)
         {
             var querySource = this._serviceProvider.GetRequiredService<IDataSourceLoaderFactory>().Create(dataSource);

@@ -33,7 +33,7 @@ namespace ListViewer
             }
         }
 
-        private async void OnServiceProviderChanged(IServiceProvider serviceProvider)
+        private void OnServiceProviderChanged(IServiceProvider serviceProvider)
         {
             if (serviceProvider is null)
                 throw new ArgumentNullException(nameof(serviceProvider));
@@ -77,19 +77,33 @@ namespace ListViewer
         {
             var dialog = new OpenFileDialog
             {
-                Multiselect = true,
+                Multiselect = false,
                 CheckFileExists = true,
-                Filter = "Data files (*.csv)|*.csv;*.efu"
+                Filter = "Data files|*.sqlite3;*.csv;*.efu"
             };
 
             if (dialog.ShowDialog() == true)
             {
                 var cfgFile = App.Current.ScopedServiceProvider!.GetRequiredService<ConfigurationFile>();
                 cfgFile.Sources ??= new();
-                cfgFile.Sources.Add(new DataSource
+
+                cfgFile.Sources.AddRange(dialog.FileNames.Select(name =>
                 {
-                    FilePath = dialog.FileName,
-                });
+                    bool HasExt(string ext) => name.EndsWith(ext, StringComparison.OrdinalIgnoreCase);
+
+                    var provider = name switch
+                    {
+                        _ when HasExt(".sqlite3") => DataProviderNames.Sqlite3,
+                        _ when HasExt(".csv") || HasExt(".efu") => DataProviderNames.Csv,
+                        _ => null
+                    };
+
+                    return new DataSource
+                    {
+                        FilePath = dialog.FileName,
+                        Provider = provider
+                    };
+                }));
 
                 this.OnServiceProviderChanged(App.Current.ScopedServiceProvider!);
             }

@@ -12,36 +12,38 @@ namespace ListViewer.Model.Bases
 {
     abstract class BaseDataSourceLoader
     {
-        private ITable? _cachedTable;
+        private IOpenedTables? _cachedTables;
 
         public Dictionary<string, string> ContextVariables { get; } = new Dictionary<string, string>();
 
         public FieldsMapper FieldsMapper { get; protected set; } = default!;
 
-        public virtual Task ConfigureAsync(DataSource dataSource)
+        public virtual async Task ConfigureAsync(DataSource dataSource)
         {
             if (dataSource.LoadEntireTableToMemory)
             {
-                this.LoadEntireTableToMemory();
+                await this.LoadEntireTableToMemory();
             }
-
-            return Task.CompletedTask;
         }
 
-        public virtual ITable ConnectTable() => this._cachedTable ?? this.ConnectTableCore();
+        public virtual IOpenedTables ConnectTables() => this._cachedTables ?? this.ConnectTablesCore();
 
-        protected abstract ITable ConnectTableCore();
+        protected abstract IOpenedTables ConnectTablesCore();
 
-        public void LoadEntireTableToMemory()
+        public async Task LoadEntireTableToMemory()
         {
-            using var table = this.ConnectTableCore();
-            this._cachedTable = new InMemoryTable(table);
+            using var tables = this.ConnectTablesCore();
+
+            var cachedTables = new OpenedTables();
+            await foreach (var table in tables.GetTablesAsync(default))
+            {
+                cachedTables.AddTable(new InMemoryTable(table));
+            }
+            this._cachedTables = cachedTables;
         }
 
-        public ValueTask<IReadOnlyList<QueryRecords>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
+        protected ValueTask<QueryRecords> QueryFromTableAsync(ITable table, QueryContext queryContext, CancellationToken cancellationToken)
         {
-            using var table = this.ConnectTable();
-
             var selectColumns = queryContext.SelectColumns;
             var headers = selectColumns?.Select(x => x.DisplayName!).ToImmutableArray() ?? table.Headers;
 
@@ -70,7 +72,22 @@ namespace ListViewer.Model.Bases
                 }
             }
 
-            return new(new[] { new QueryRecords(headers, Query().ToArray()) });
+            return new (new QueryRecords(headers, Query().ToArray()));
+        }
+
+        public async ValueTask<IReadOnlyList<QueryRecords>> QueryAsync(QueryContext queryContext, CancellationToken cancellationToken)
+        {
+            using var tables = this.ConnectTables();
+
+            var records = new List<QueryRecords>();
+            await foreach (var table in tables.GetTablesAsync(cancellationToken))
+            {
+                using (table)
+                {
+                    records.Add(await this.QueryFromTableAsync(table, queryContext, cancellationToken).ConfigureAwait(false));
+                }
+            }
+            return records;
         }
     }
 }

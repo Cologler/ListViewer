@@ -60,14 +60,11 @@ namespace ListViewer
             }
         }
 
-        public Task LoadAsync()
-        {
-            return this.UpdateItemsAsync(0);
-        }
+        public Task LoadAsync() => this.UpdateItemsAsync(0);
 
         private async Task UpdateItemsAsync(int delay)
         {
-            var searchText = this._searchText ?? string.Empty;
+            var searchText = this._searchText?.Trim() ?? string.Empty;
             if (delay > 0)
             {
                 await Task.Delay(delay);
@@ -86,7 +83,7 @@ namespace ListViewer
             try
             {
                 this.CurrentStatus = "searching...";
-                var records = (await Task.Run(() => this.DataQueryProvider.QueryAsync(this._searchText.Trim(), token), token));
+                var records = await Task.Run(() => this.DataQueryProvider.QueryAsync(searchText, token), token);
                 this.Items.Clear();
                 this.CurrentStatus = $"found {records.Rows.Count} rows, finished at {(double)sw.ElapsedMilliseconds/1000}s";
 
