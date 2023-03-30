@@ -1,6 +1,9 @@
-name: .NET Core
+name: .NET Testing
 
 on: [push]
+
+env:
+  DAY_OF_WEEK: ListViewer
 
 jobs:
   build:
@@ -8,17 +11,32 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
+
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '7.0.x'
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget
+
+    - name: Install dependencies
+      run: dotnet restore
+
     - name: Build with dotnet
-      run: dotnet build --configuration Release
+      run: dotnet build
+
     - name: Test
       run: dotnet test
+
     - name: Make artifact dir
-      run: (mkdir "./artifacts")  -and (get-childitem -path "./ListViewer/bin/Release/*/*" | copy-item -destination "./artifacts" -recurse)
+      run: (mkdir "./artifacts") -and (get-childitem -path "./$env:MAIN_PROJECT/bin/Release/*/*" | copy-item -destination "./artifacts" -recurse)
+
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
