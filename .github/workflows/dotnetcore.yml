@@ -3,7 +3,7 @@ name: .NET Testing
 on: [push]
 
 env:
-  DAY_OF_WEEK: ListViewer
+  MAIN_PROJECT: ListViewer
 
 jobs:
   build:
