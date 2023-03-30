@@ -35,7 +35,7 @@ jobs:
       run: dotnet test
 
     - name: Make artifact dir
-      run: (mkdir "./artifacts") -and (get-childitem -path "./$env:MAIN_PROJECT/bin/*/*/*" | copy-item -destination "./artifacts" -recurse)
+      run: (echo $(Get-Location)) -and (mkdir "./artifacts") -and (get-childitem -path "./$env:MAIN_PROJECT/bin/*/*/*" | copy-item -destination "./artifacts" -recurse)
 
     - name: Upload artifact
       uses: actions/upload-artifact@v1
