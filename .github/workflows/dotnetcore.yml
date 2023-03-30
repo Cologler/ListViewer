@@ -3,7 +3,7 @@ name: .NET Testing
 on: [push]
 
 env:
-  DAY_OF_WEEK: ListViewer
+  MAIN_PROJECT: ListViewer
 
 jobs:
   build:
@@ -33,8 +33,6 @@ jobs:
 
     - name: Test
       run: dotnet test
-
-    - run: echo $(Get-Location)
 
     - name: Make artifact dir
       run: (mkdir "./artifacts") -and (get-childitem -path "./$env:MAIN_PROJECT/bin/*/*/*" | copy-item -destination "./artifacts" -recurse)
